@@ -69,6 +69,7 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
+import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 
@@ -119,7 +120,7 @@ fun McModsUpdaterScreen(
                     ) {
                         IconButton(
                             onClick = {
-                                backStackViewModel.mainScreen.popBackStack()
+                                onBack(backStackViewModel.mainScreen.backStack)
                             }
                         ) {
                             Icon(

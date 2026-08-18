@@ -512,7 +512,7 @@ private fun JdkDownloadDialog(
                                         ) {
                                             Icon(
                                                 modifier = Modifier.size(14.dp),
-                                                painter = painterResource(R.drawable.ic_check_circle),
+                                                painter = painterResource(R.drawable.ic_check),
                                                 contentDescription = null,
                                                 tint = MaterialTheme.colorScheme.primary
                                             )

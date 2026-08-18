@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -206,6 +208,13 @@ private fun AccountHeaderCard(
     modifier: Modifier = Modifier
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+    val currentAcc = account
+    val accountTitle = currentAcc?.username ?: stringResource(R.string.account_no_account)
+    val accountSubtitle = if (currentAcc != null) {
+        getAccountTypeName(currentAcc)
+    } else {
+        stringResource(R.string.account_switch_account)
+    }
 
     BackgroundCard(
         modifier = modifier
@@ -219,9 +228,9 @@ private fun AccountHeaderCard(
                 .padding(horizontal = 14.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (account != null) {
+            if (currentAcc != null) {
                 PlayerFace(
-                    account = account!!,
+                    account = currentAcc,
                     avatarSize = 38.dp
                 )
             } else {
@@ -241,12 +250,12 @@ private fun AccountHeaderCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = account?.username ?: stringResource(R.string.account_add_new_account),
+                    text = accountTitle,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1
                 )
                 Text(
-                    text = account?.let { getAccountTypeName(it) } ?: stringResource(R.string.account_manager_switch_account),
+                    text = accountSubtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -260,8 +269,8 @@ private fun AccountHeaderCard(
             }
             IconButton(onClick = onClick) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_swap_horiz),
-                    contentDescription = stringResource(R.string.account_manager_switch_account),
+                    painter = painterResource(R.drawable.ic_restart_alt),
+                    contentDescription = stringResource(R.string.account_switch_account),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

@@ -1309,4 +1309,5 @@
     <string name="mc_mods_updater_quick_modrinth">Modrinth</string>
     <string name="mc_mods_updater_quick_curseforge">CurseForge</string>
     <string name="mc_mods_updater_quick_updates">Check Updates</string>
+    <string name="account_switch_account">Switch Account</string>
 </resources>
