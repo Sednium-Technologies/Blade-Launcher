@@ -284,5 +284,5 @@ See the [LICENSE](LICENSE) file for the full license text.
 - *Minecraft is a registered trademark of Mojang Synergies AB. Blade Launcher is not affiliated with Mojang or Microsoft.*
 
 <div align="center">
-  <p>Made with ⚔️ by the Blade Launcher Team & Open Source Community.</p>
+  <p>Made with ❤ by the Sednium Team & Open Source Community.</p>
 </div>
