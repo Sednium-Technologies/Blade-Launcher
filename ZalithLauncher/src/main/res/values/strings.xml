@@ -160,9 +160,11 @@
     <string name="microphone_check_no_permissions">Microphone Permission Not Granted to Launcher</string>
     <!-- Unpacking -->
     <string name="unpack_screen_jre8">Java 8 Environment (required for Minecraft 1.16 and below)</string>
+    <string name="unpack_screen_jre11">Java 11 Environment (LTS / Custom servers)</string>
     <string name="unpack_screen_jre17">Java 17 Environment (required for Minecraft 1.17+)</string>
     <string name="unpack_screen_jre21">Java 21 Environment (required for Minecraft 1.20.5+)</string>
     <string name="unpack_screen_jre25">Java 25 Environment (required for Minecraft 26.1+)</string>
+    <string name="unpack_screen_jre26">Java 26 Environment (Cutting Edge / Experimental)</string>
     <string name="unpack_screen_authlib_injector">Modifies authlib at runtime to enable external logins</string>
     <string name="unpack_screen_cacio">Portable GUI backend for OpenJDK</string>
     <string name="unpack_screen_lwjgl">Lightweight Java Game Library (required by Minecraft)</string>
@@ -618,6 +620,14 @@
     <string name="multirt_runtime_version_arch">Architecture: %s</string>
     <string name="multirt_no_java_8">Java 8 is required for this feature, but was not found.</string>
     <string name="execute_jar_title">Execute Jar</string>
+    <string name="multirt_download_jdk_title">Download Java (JDK)</string>
+    <string name="multirt_download_jdk_dialog_title">JDK Java Runtime Manager</string>
+    <string name="multirt_download_jdk_dialog_desc">Select and install official pre-configured Java runtimes (Java 8 up to Java 26) optimized for Minecraft.</string>
+    <string name="multirt_jdk_installed">Installed</string>
+    <string name="multirt_jdk_download">Download</string>
+    <string name="multirt_jdk_installing">Installing %s...</string>
+    <string name="multirt_jdk_installed_success">%s installed successfully!</string>
+    <string name="multirt_jdk_install_failed">Failed to install %s</string>
     <!-- Version Management -->
     <string name="versions_manage_game_path_default">Default Game Folder</string>
     <string name="versions_manage_game_path_add_new">Add Game Folder</string>
@@ -1290,4 +1300,13 @@
     <string name="festivals_new_year">Happy New Year!</string>
     <string name="festivals_april_fools">Happy April Fools\' Day!</string>
     <string name="festivals_christmas">Merry Christmas!</string>
+
+    <!-- MC Mods Updater -->
+    <string name="mc_mods_updater_title">MC Mods Updater</string>
+    <string name="mc_mods_updater_desc">Update, browse, and manage Minecraft mods</string>
+    <string name="mc_mods_updater_open_browser">Open in Browser</string>
+    <string name="mc_mods_updater_refresh">Refresh</string>
+    <string name="mc_mods_updater_quick_modrinth">Modrinth</string>
+    <string name="mc_mods_updater_quick_curseforge">CurseForge</string>
+    <string name="mc_mods_updater_quick_updates">Check Updates</string>
 </resources>

@@ -28,24 +28,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.scrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +71,7 @@ import com.movtery.zalithlauncher.context.getFileName
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.launch.executeJarWithUri
+import com.movtery.zalithlauncher.game.multirt.JdkDownloadManager
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.path.PathManager
@@ -87,6 +97,7 @@ import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.throwableToString
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private sealed interface RuntimeOperation {
     data object None: RuntimeOperation
@@ -114,6 +125,21 @@ fun JavaManageScreen(
 
         var runtimes by remember { mutableStateOf(getRuntimes()) }
         var runtimeOperation by remember { mutableStateOf<RuntimeOperation>(RuntimeOperation.None) }
+        var showJdkDownloadDialog by remember { mutableStateOf(false) }
+
+        if (showJdkDownloadDialog) {
+            JdkDownloadDialog(
+                onDismiss = {
+                    showJdkDownloadDialog = false
+                    runtimes = getRuntimes(true)
+                },
+                onInstalled = {
+                    runtimes = getRuntimes(true)
+                },
+                submitError = submitError
+            )
+        }
+
         RuntimeOperation(
             runtimeOperation = runtimeOperation,
             updateOperation = { runtimeOperation = it },
@@ -135,6 +161,12 @@ fun JavaManageScreen(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    IconTextButton(
+                        onClick = { showJdkDownloadDialog = true },
+                        painter = painterResource(R.drawable.ic_download),
+                        contentDescription = stringResource(R.string.multirt_download_jdk_title),
+                        text = stringResource(R.string.multirt_download_jdk_title),
+                    )
                     IconTextButton(
                         onClick = { runtimes = getRuntimes(true) },
                         painter = painterResource(R.drawable.ic_refresh),
@@ -391,4 +423,172 @@ private fun JavaRuntimeItem(
             }
         }
     }
+}
+
+@Composable
+private fun JdkDownloadDialog(
+    onDismiss: () -> Unit,
+    onInstalled: () -> Unit,
+    submitError: (ErrorViewModel.ThrowableMessage) -> Unit
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val downloadingMap by JdkDownloadManager.downloadingVersions.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Text(
+                    text = stringResource(R.string.multirt_download_jdk_dialog_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.multirt_download_jdk_dialog_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        text = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(JdkDownloadManager.availableJdks) { jdkItem ->
+                    val isInstalled = JdkDownloadManager.isJdkInstalled(jdkItem.majorVersion)
+                    val progress = downloadingMap[jdkItem.majorVersion]
+                    val isDownloading = progress != null
+
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = jdkItem.title,
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        color = if (jdkItem.isLts) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.tertiaryContainer
+                                    ) {
+                                        Text(
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            text = if (jdkItem.isLts) "LTS" else "Latest",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = if (jdkItem.isLts) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer
+                                        )
+                                    }
+                                }
+
+                                if (isInstalled) {
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        color = MaterialTheme.colorScheme.primaryContainer
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                modifier = Modifier.size(14.dp),
+                                                painter = painterResource(R.drawable.ic_check_circle),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.multirt_jdk_installed),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        }
+                                    }
+                                } else if (isDownloading) {
+                                    Text(
+                                        text = "${((progress ?: 0f) * 100).toInt()}%",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                } else {
+                                    IconTextButton(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                JdkDownloadManager.downloadAndInstallJdk(
+                                                    context = context,
+                                                    item = jdkItem,
+                                                    onSuccess = {
+                                                        Toast.makeText(
+                                                            context,
+                                                            context.getString(R.string.multirt_jdk_installed_success, jdkItem.title),
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        onInstalled()
+                                                    },
+                                                    onError = { err ->
+                                                        submitError(
+                                                            ErrorViewModel.ThrowableMessage(
+                                                                title = context.getString(R.string.multirt_jdk_install_failed, jdkItem.title),
+                                                                message = err.getMessageOrToString()
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        },
+                                        painter = painterResource(R.drawable.ic_download),
+                                        contentDescription = stringResource(R.string.multirt_jdk_download),
+                                        text = stringResource(R.string.multirt_jdk_download)
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = jdkItem.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Text(
+                                text = "Target: ${jdkItem.recommendedMc}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+
+                            if (isDownloading) {
+                                LinearProgressIndicator(
+                                    progress = { progress ?: 0f },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.generic_close))
+            }
+        }
+    )
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -73,6 +75,7 @@ import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -84,6 +87,7 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
+import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
@@ -104,9 +108,31 @@ fun LauncherScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        val toAccountManageScreen: () -> Unit = {
+            backStackViewModel.mainScreen.navigateTo(
+                screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+            )
+        }
+        val toVersionManageScreen: () -> Unit = {
+            backStackViewModel.mainScreen.removeAndNavigateTo(
+                remove = NestedNavKey.VersionSettings::class,
+                screenKey = NormalNavKey.VersionsManager
+            )
+        }
+        val toVersionSettingsScreen: () -> Unit = {
+            VersionsManager.currentVersion.value?.let { version ->
+                navigateToVersions(version)
+            }
+        }
+        val toModsUpdaterScreen: () -> Unit = {
+            backStackViewModel.mainScreen.navigateTo(
+                screenKey = NormalNavKey.McModsUpdater()
+            )
+        }
+
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val isPortrait = maxWidth < 600.dp
+
             CompositionLocalProvider(
                 LocalUriHandler provides object : UriHandler {
                     override fun openUri(uri: String) {
@@ -114,41 +140,265 @@ fun LauncherScreen(
                     }
                 }
             ) {
-                ContentMenu(
-                    modifier = Modifier.weight(7f),
-                    isVisible = isVisible,
-                    onHomePageEvent = onHomePageEvent
-                )
-            }
+                if (isPortrait) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                    ) {
+                        AccountHeaderCard(
+                            onClick = toAccountManageScreen,
+                            onOpenModsUpdater = toModsUpdaterScreen,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 6.dp)
+                        )
 
-            val toAccountManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                        ContentMenu(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            isVisible = isVisible,
+                            onHomePageEvent = onHomePageEvent
+                        )
+
+                        PortraitLaunchBar(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp, bottom = 4.dp),
+                            onLaunchGame = onLaunchGame,
+                            toVersionManageScreen = toVersionManageScreen,
+                            toVersionSettingsScreen = toVersionSettingsScreen
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        ContentMenu(
+                            modifier = Modifier.weight(7f),
+                            isVisible = isVisible,
+                            onHomePageEvent = onHomePageEvent
+                        )
+
+                        RightMenu(
+                            isVisible = isVisible,
+                            modifier = Modifier
+                                .weight(3f)
+                                .fillMaxHeight()
+                                .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
+                            onLaunchGame = onLaunchGame,
+                            toAccountManageScreen = toAccountManageScreen,
+                            toVersionManageScreen = toVersionManageScreen,
+                            toVersionSettingsScreen = toVersionSettingsScreen
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountHeaderCard(
+    onClick: () -> Unit,
+    onOpenModsUpdater: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+
+    BackgroundCard(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.extraLarge)
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.extraLarge
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (account != null) {
+                PlayerFace(
+                    account = account!!,
+                    avatarSize = 38.dp
+                )
+            } else {
+                Surface(
+                    modifier = Modifier.size(38.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Icon(
+                        modifier = Modifier.padding(6.dp),
+                        painter = painterResource(R.drawable.ic_person_outlined),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = account?.username ?: stringResource(R.string.account_add_new_account),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1
+                )
+                Text(
+                    text = account?.let { getAccountTypeName(it) } ?: stringResource(R.string.account_manager_switch_account),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            val toVersionManageScreen: () -> Unit = {
-                backStackViewModel.mainScreen.removeAndNavigateTo(
-                    remove = NestedNavKey.VersionSettings::class,
-                    screenKey = NormalNavKey.VersionsManager
+            IconButton(onClick = onOpenModsUpdater) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_autorenew),
+                    contentDescription = stringResource(R.string.mc_mods_updater_title),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-            val toVersionSettingsScreen: () -> Unit = {
-                VersionsManager.currentVersion.value?.let { version ->
-                    navigateToVersions(version)
+            IconButton(onClick = onClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_swap_horiz),
+                    contentDescription = stringResource(R.string.account_manager_switch_account),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PortraitLaunchBar(
+    modifier: Modifier = Modifier,
+    onLaunchGame: (Version?) -> Unit,
+    toVersionManageScreen: () -> Unit,
+    toVersionSettingsScreen: () -> Unit
+) {
+    val version by VersionsManager.currentVersion.collectAsStateWithLifecycle()
+    val isRefreshing by VersionsManager.isRefreshing.collectAsStateWithLifecycle()
+
+    var showList by remember { mutableStateOf(false) }
+    var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
+
+    BackgroundCard(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .onGloballyPositioned { coordinates ->
+                            versionManagerRow = coordinates
+                        }
+                ) {
+                    VersionManagerLayout(
+                        isRefreshing = isRefreshing,
+                        version = version,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        swapToVersionManage = toVersionManageScreen,
+                        openListMenu = { showList = true },
+                    )
+                }
+
+                version?.takeIf { !isRefreshing && it.isValid() }?.let {
+                    IconButton(
+                        onClick = toVersionSettingsScreen
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_filled),
+                            contentDescription = stringResource(R.string.versions_manage_settings)
+                        )
+                    }
                 }
             }
 
-            RightMenu(
-                isVisible = isVisible,
+            val menuAnchor = versionManagerRow
+            val menuAnchorBounds = menuAnchor?.boundsInParent()
+            val menuAnchorX = menuAnchorBounds?.left ?: 0f
+            val menuAnchorHeight = menuAnchorBounds?.height ?: 0f
+
+            DropdownMenu(
+                expanded = showList && menuAnchor != null,
+                onDismissRequest = { showList = false },
+                modifier = Modifier.fillMaxWidth(0.9f),
+                offset = DpOffset(
+                    x = with(LocalDensity.current) { menuAnchorX.toDp() },
+                    y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
+                ),
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                VersionsManager.versions.forEach { version0 ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CommonVersionInfoLayout(
+                                    modifier = Modifier.weight(1f),
+                                    version = version0,
+                                    iconSize = 28.dp
+                                )
+                                IconButton(
+                                    onClick = {
+                                        onLaunchGame(version0)
+                                        showList = false
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                        contentDescription = stringResource(R.string.main_launch_game),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            if (version == version0) return@DropdownMenuItem
+                            VersionsManager.saveVersion(version0)
+                            showList = false
+                        }
+                    )
+                }
+            }
+
+            ScalingActionButton(
                 modifier = Modifier
-                    .weight(3f)
-                    .fillMaxHeight()
-                    .padding(top = 12.dp, end = 12.dp, bottom = 12.dp),
-                onLaunchGame = onLaunchGame,
-                toAccountManageScreen = toAccountManageScreen,
-                toVersionManageScreen = toVersionManageScreen,
-                toVersionSettingsScreen = toVersionSettingsScreen
-            )
+                    .fillMaxWidth()
+                    .height(48.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
+                onClick = { onLaunchGame(null) }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_play_arrow_filled),
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    MarqueeText(
+                        text = stringResource(R.string.main_launch_game),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
         }
     }
 }

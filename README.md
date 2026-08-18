@@ -1,99 +1,288 @@
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+<div align="center">
 
-[简体中文](README_ZH_CN.md) | [繁體中文](README_ZH_TW.md)
+# ⚔️ Blade Launcher
 
+**Next-Generation Mobile Launcher for Minecraft: Java Edition on Android**
 
-> [!IMPORTANT]
-> This project is **completely separate** from [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher).  
+[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20%28API%2026%2B%29-orange?style=for-the-badge&logo=android)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-7F52FF?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3E-4285F4?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
+[![Java Runtimes](https://img.shields.io/badge/Java-8%20→%2026-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](LICENSE)
 
-**Zalith Launcher 2** is a newly designed launcher for **Android devices** tailored for [Minecraft: Java Edition](https://www.minecraft.net/). The project uses [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) as its core launching engine and features a modern UI built with **Jetpack Compose** and **Material Design 3**.  
-We are currently building our official website [zalithlauncher.cn](https://zalithlauncher.cn)  
-Additionally, we are aware that a third-party website has been set up using the name “Zalith Launcher”, appearing to be official. Please note: **this site was not created by us**. It exploits the name to display ads for profit. We **do not participate in, endorse, or trust** such content.  
-Please stay vigilant and **protect your personal privacy**!  
+*Experience desktop Minecraft: Java Edition in the palm of your hand with an ergonomic mobile-first vertical interface, high-performance Vulkan/OpenGL render pipelines, instant JDK 8–26 installer, and integrated Modrinth & MC Mods ecosystem.*
 
-[Discord Server Shutdown Announcement](/.github/notice/DiscordStatus.md)  
+---
 
-## 🌐 Language and Translation Support
+</div>
 
-We are using the Weblate platform to translate Zalith Launcher 2. You're welcome to join our [Weblate project](https://hosted.weblate.org/projects/zalithlauncher2) and contribute to the translations!  
-Thank you to every language contributor for helping make Zalith Launcher 2 more multilingual and global!
+## 📑 Table of Contents
 
-## 📦 Build Instructions (For Developers)
+- [✨ Key Highlights](#-key-highlights)
+- [🎨 Design System & Aesthetics](#-design-system--aesthetics)
+- [☕ Java Runtime Management (JDK 8–26)](#-java-runtime-management-jdk-826)
+- [🧩 Modrinth & CurseForge Browser](#-modrinth--curseforge-browser)
+- [🌐 MC Mods Updater Hub](#-mc-mods-updater-hub)
+- [🛠️ Tech Stack & Architecture](#️-tech-stack--architecture)
+- [🏗️ Project Structure](#️-project-structure)
+- [🚀 Getting Started (Build & Run)](#-getting-started-build--run)
+- [⚙️ Configuration & Environment](#️-configuration--environment)
+- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
+- [❓ Troubleshooting & FAQ](#-troubleshooting--faq)
+- [📜 License & Compliance Notice](#-license--compliance-notice)
 
-> The following section is for developers who wish to contribute or build the project locally.
+---
 
-### Requirements
+## ✨ Key Highlights
 
-* Android Studio **Bumblebee** or newer
-* Android SDK:
-  * **Minimum API level**: 26
-  * **Target API level**: 35
-* JDK 11
+- **📱 Pojav-Style Vertical Mobile UX**: Ergonomic one-handed portrait interface with rapid launch controls anchored directly in the thumb zone. Seamlessly adapts to tablets and landscape mode via responsive breakpoint layouts.
+- **☕ Built-in JDK Downloader (Java 8 up to Java 26)**: One-click installation of OpenJDK runtimes (8, 11, 17, 21, 25, 26) across ARM64, ARM32, and x86_64 architectures with automatic per-version JVM routing.
+- **🔥 Milk White & Flame Orange Aesthetic**: Bespoke theme inspired by the modern **MC Mods Updater** ecosystem, featuring `#EC5E27` flame orange accents, silky milk-white surfaces, obsidian dark mode, and tactile pill-shaped smooth buttons.
+- **🧩 1-Tap Mod & Resource Pack Installer**: Native Modrinth & CurseForge integration with fast category filtering, loader selectors (Fabric, Forge, NeoForge, Quilt, Cleanroom, Legacy Fabric), and direct download.
+- **🌐 Integrated MC Mods Updater Hub**: Embedded webview environment equipped with quick source pills, back/forward history navigation, cache cleanup, and instant external browser dispatch.
+- **⚡ Advanced Multi-Renderer Graphics Engine**: Hardware-accelerated Vulkan (Zink / Turnip / VirGL), ANGLE, and NG-GL4ES render backends tailored for smooth 60+ FPS gameplay.
+- **🎮 Touch Controls & Gamepad Engine**: Fully custom virtual touch HUD with custom button textures, haptic feedback, gyroscope aim assist, and physical gamepad (Xbox / PlayStation / HID) mapping.
+- **🛡️ Process Isolation Architecture**: Split-process architecture separating the launcher interface (`:main`) from the Minecraft JVM environment (`:game`) for extreme memory stability.
 
-### Build Steps
+---
 
-```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
-# Open the project in Android Studio and build
+## 🎨 Design System & Aesthetics
+
+Blade Launcher is engineered with a **Touch-First, Mobile-First** design doctrine that prioritizes usability, fluid animations, and visual polish.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       BLADE LAUNCHER                        │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │  👤 Steve  [Microsoft / Offline]           🔄 Switch    │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │                                                         │ │
+│ │                  🔥 COMMUNITY NEWS & HUB                │ │
+│ │                                                         │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────────┐ │
+│ │  📦 Fabric 1.21.4 (Java 21)                  ⚙️ Settings │ │
+│ │  ┌───────────────────────────────────────────────────┐  │ │
+│ │  │             ▶  PLAY MINECRAFT                     │  │ │
+│ │  └───────────────────────────────────────────────────┘  │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 📜 License
+### Color Tokens
 
-This project is licensed under the **[GPL-3.0 license](LICENSE)**.
+| Token | Light Theme (Milk White) | Dark Theme (Obsidian Slate) | Purpose |
+|---|---|---|---|
+| **Primary Accent** | `#EC5E27` (Flame Orange) | `#EC5E27` (Flame Orange) | CTAs, Launch Buttons, Badges |
+| **Primary Container** | `#FFDCD2` | `#3D1B0F` | Active Chips, Highlight Cards |
+| **Surface Background** | `#FFFFFF` / `#FAF8F6` | `#0F1115` / `#15181E` | Background Canvas & Dialogs |
+| **Card Containers** | `#F6F3F0` | `#1A1E26` / `#222731` | Elevation Cards & Lists |
+| **Outlines & Dividers** | `#8B716A` | `#444B59` / `#282D37` | Subtle Separation Lines |
 
-### Additional Terms (Pursuant to Section 7 of the GPLv3 License)
+---
 
-1. When distributing a modified version of this program, you must reasonably modify the program's name or version number to distinguish it from the original version. (According to [GPLv3, 7(c)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L372-L374))
-    - Modified versions **must not include the original program name "ZalithLauncher" or its abbreviation "ZL" in their name, nor use any name that is similar enough to cause confusion with the official name**.
-    - All modified versions **must clearly indicate that they are “Unofficial Modified Versions” on the program’s startup screen or main interface**.
-    - The application name of the program can be modified in [gradle.properties](./ZalithLauncher/gradle.properties).
+## ☕ Java Runtime Management (JDK 8–26)
 
-2. You must not remove the copyright notices displayed by the program. (According to [GPLv3, 7(b)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L368-L370))
+Blade Launcher includes a complete Java catalog manager that downloads, verifies, and decompresses OpenJDK archives into native Android runtime environments:
 
-## Open Source Libraries and Licenses
+| JDK Version | Status | Target Minecraft Releases | Recommended Mod Loaders |
+|---|---|---|---|
+| **Java 8** | LTS | Minecraft 1.0 – 1.16.5 | Forge 1.7.10–1.12.2, OptiFine |
+| **Java 11** | LTS | Minecraft 1.16+ legacy & Babric | Babric, Legacy Fabric |
+| **Java 17** | LTS | Minecraft 1.17 – 1.20.4 | Fabric, Forge 1.17+, Quilt |
+| **Java 21** | LTS | Minecraft 1.20.5 – 1.21.x | Fabric, NeoForge, Cleanroom 0.4.4 |
+| **Java 25** | Preview | Minecraft 26.x Snapshots / Cleanroom 0.5+ | Cleanroom 0.5.0-alpha+ |
+| **Java 26** | Experimental | Next-Gen Minecraft & Research | Experimental JVM Flags |
 
-This software uses the following open source libraries:
+### How It Works
 
-| Library                               | Copyright                                                                                                     | License              | Official Link                                                                     |
-|---------------------------------------|---------------------------------------------------------------------------------------------------------------|----------------------|-----------------------------------------------------------------------------------|
-| androidx-constraintlayout-compose     | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link](https://developer.android.com/develop/ui/compose/layouts/constraintlayout) |
-| androidx-material-icons-core          | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link](https://developer.android.com/jetpack/androidx/releases/compose-material)  |
-| androidx-material-icons-extended      | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link](https://developer.android.com/jetpack/androidx/releases/compose-material)  |
-| ANGLE                                 | Copyright 2018 The ANGLE Project Authors                                                                      | BSD 3-Clause License | [Link](http://angleproject.org/)                                                  |
-| Apache Commons Codec                  | -                                                                                                             | Apache 2.0           | [Link](https://commons.apache.org/proper/commons-codec)                           |
-| Apache Commons Compress               | -                                                                                                             | Apache 2.0           | [Link](https://commons.apache.org/proper/commons-compress)                        |
-| Apache Commons IO                     | -                                                                                                             | Apache 2.0           | [Link](https://commons.apache.org/proper/commons-io)                              |
-| ByteHook                              | Copyright © 2020-2024 ByteDance, Inc.                                                                         | MIT License          | [Link](https://github.com/bytedance/bhook)                                        |
-| BuildKeys                             | Copyright © 2026 MovTery                                                                                      | Aoache 2.0           | [Link](https://github.com/MovTery/BuildKeys)                                      |
-| Coil Compose                          | Copyright © 2025 Coil Contributors                                                                            | Apache 2.0           | [Link](https://github.com/coil-kt/coil)                                           |
-| Coil Gifs                             | Copyright © 2025 Coil Contributors                                                                            | Apache 2.0           | [Link](https://github.com/coil-kt/coil)                                           |
-| Coil SVG                              | Copyright © 2025 Coil Contributors                                                                            | Apache 2.0           | [Link](https://github.com/coil-kt/coil)                                           |
-| Fishnet                               | Copyright © 2025 Kyant                                                                                        | Apache 2.0           | [Link](https://github.com/Kyant0/Fishnet)                                         |
-| gl4es_extra_extra                     | Copyright © 2016-2018 Sebastien Chevalier; Copyright (c) 2013-2016 Ryan Hileman                               | MIT License          | [Link](https://github.com/PojavLauncherTeam/gl4es_extra_extra)                    |
-| Gson                                  | Copyright © 2008 Google Inc.                                                                                  | Apache 2.0           | [Link](https://github.com/google/gson)                                            |
-| kotlinx.coroutines                    | Copyright © 2000-2020 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://github.com/Kotlin/kotlinx.coroutines)                              |
-| ktor-client-cio                       | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://ktor.io)                                                           |
-| ktor-client-content-negotiation       | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://ktor.io)                                                           |
-| ktor-client-core                      | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://ktor.io)                                                           |
-| ktor-http                             | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://ktor.io)                                                           |
-| ktor-serialization-kotlinx-json       | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link](https://ktor.io)                                                           |
-| LWJGL - Lightweight Java Game Library | Copyright © 2012-present Lightweight Java Game Library All rights reserved.                                   | BSD 3-Clause License | [Link](https://github.com/LWJGL/lwjgl3)                                           |
-| material-color-utilities              | Copyright 2021 Google LLC                                                                                     | Apache 2.0           | [Link](https://github.com/material-foundation/material-color-utilities)           |
-| Maven Artifact                        | Copyright © The Apache Software Foundation                                                                    | Apache 2.0           | [Link](https://github.com/apache/maven/tree/maven-3.9.9/maven-artifact)           |
-| Media3                                | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link](https://developer.android.com/jetpack/androidx/releases/media3)            |
-| Mesa                                  | Copyright © The Mesa Authors                                                                                  | MIT License          | [Link](https://mesa3d.org/)                                                       |
-| MMKV                                  | Copyright © 2018 THL A29 Limited, a Tencent company.                                                          | BSD 3-Clause License | [Link](https://github.com/Tencent/MMKV)                                           |
-| Navigation 3                          | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link](https://developer.android.com/jetpack/androidx/releases/navigation3)       |
-| NBT                                   | Copyright © 2016 - 2020 Querz                                                                                 | MIT License          | [Link](https://github.com/Querz/NBT)                                              |
-| NG-GL4ES                              | Copyright © 2016-2018 Sebastien Chevalier; Copyright © 2013-2016 Ryan Hileman; Copyright (c) 2025-2026 BZLZHH | MIT License          | [Link](https://github.com/BZLZHH/NG-GL4ES)                                        |
-| OkHttp                                | Copyright © 2019 Square, Inc.                                                                                 | Apache 2.0           | [Link](https://github.com/square/okhttp)                                          |
-| Okio                                  | Copyright © 2013 Square, Inc.                                                                                 | Apache 2.0           | [Link](https://square.github.io/okio/)                                            |
-| Process Phoenix                       | Copyright © 2015 Jake Wharton                                                                                 | Apache 2.0           | [Link](https://github.com/JakeWharton/ProcessPhoenix)                             |
-| proxy-client-android                  | -                                                                                                             | LGPL-3.0 License     | [Link](https://github.com/TouchController/TouchController)                        |
-| Reorderable                           | Copyright © 2023 Calvin Liang                                                                                 | Apache 2.0           | [Link](https://github.com/Calvin-LL/Reorderable)                                  |
-| skinview3d                            | Copyright © 2014-2018 Kent Rasmussen; Copyright © 2017-2022 Haowei Wen, Sean Boult and contributors           | MIT License          | [Link](https://github.com/bs-community/skinview3d)                                |
-| sora-editor                           | Copyright © 1991, 1999 Free Software Foundation, Inc.                                                         | LGPL-2.1 License     | [Link](https://github.com/Rosemoe/sora-editor)                                    |
-| StringFog                             | Copyright © 2016-2023, Megatron King                                                                          | Apache 2.0           | [Link](https://github.com/MegatronKing/StringFog)                                 |
-| XZ for Java                           | Copyright © The XZ for Java authors and contributors                                                          | 0BSD License         | [Link](https://tukaani.org/xz/java.html)                                          |
+1. Open **Settings** → **Java Runtime Manager**.
+2. Tap **"Download JDK (8–26)"**.
+3. Select your target Java release.
+4. The launcher automatically downloads the architecture-specific `.tar.xz` binary, unpacks with `xz-java` and `RuntimesManager.installRuntime()`, configures `libawt_xawt.so` and `libfreetype.so`, and registers the runtime immediately.
+
+---
+
+## 🧩 Modrinth & CurseForge Browser
+
+Browse and install modifications directly from within the launcher without opening an external browser:
+
+- **Unified Asset Filtering**: Filter by Minecraft version, loader (Fabric, Forge, NeoForge, Quilt), and categories (Optimization, Technology, Magic, QoL).
+- **One-Tap Mod Installation**: Downloads mod `.jar` files straight into your active version's `mods/` directory.
+- **Resource Packs & Shaders**: Installs texture packs to `resourcepacks/` and shaders to `shaderpacks/` automatically.
+- **Modpack Setup**: Instant extraction and configuration of `.mrpack` and CurseForge zip bundles.
+
+---
+
+## 🌐 MC Mods Updater Hub
+
+The **MC Mods Updater** view provides an integrated embedded WebView designed to match the launcher's dark theme:
+
+- **Quick Navigation Chips**: Instant access to Modrinth Mods, CurseForge, Modpacks, Resource Packs, and Shaders.
+- **WebView Tools**: Full back/forward navigation history, reload button, external browser handoff, and progress feedback.
+- **Touch-Friendly Controls**: Large 48dp+ interactive buttons and rounded surfaces following modern mobile guidelines.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    UI & APP LAYER (Process :main)           │
+│  Jetpack Compose M3E  •  Navigation 3  •  StateFlow / MVVM  │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ IPC / Activity Launch
+┌──────────────────────────────▼──────────────────────────────┐
+│                  GAME RUNTIME (Process :game)               │
+│  VMActivity  •  LWJGL 3 Bridge  •  Virtual Input Controller │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ JNI Bridge / POSIX fork
+┌──────────────────────────────▼──────────────────────────────┐
+│                    NATIVE & GRAPHICS LAYER                  │
+│  libjvm.so  •  Mesa (Zink/Turnip)  •  ANGLE  •  GL4ES       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Technology Highlights
+
+- **Language**: Kotlin 2.0+ (100% Coroutines & Flow)
+- **UI Framework**: Android Jetpack Compose with Material 3 Expressive (`MaterialExpressiveTheme`)
+- **Navigation**: Type-safe Navigation 3 (`NavDisplay`, `NavBackStack`)
+- **Native Linker**: JNI bridge communicating with OpenJDK binaries & Android Bionic C runtime
+- **Storage & State**: MMKV high-speed memory-mapped KV storage + Kotlinx Serialization
+- **Image Pipeline**: Coil 3 with WebP, SVG, and animated GIF decoding
+- **Networking**: Ktor Client CIO engine with asynchronous streaming downloads
+
+---
+
+## 🏗️ Project Structure
+
+```
+Blade-Launcher/
+├── ZalithLauncher/                     # Main Android application module
+│   ├── src/main/
+│   │   ├── AndroidManifest.xml         # Manifest (Portrait Launcher + Landscape Game)
+│   │   ├── java/com/movtery/zalithlauncher/
+│   │   │   ├── components/             # Core components (JRE metadata, sound, controllers)
+│   │   │   ├── coroutine/              # TaskSystem async worker pool
+│   │   │   ├── game/                   # Game launching engine
+│   │   │   │   ├── account/            # Microsoft OAuth & offline account managers
+│   │   │   │   ├── download/           # Game files, assets & Modrinth/CurseForge APIs
+│   │   │   │   ├── launch/             # GameLauncher JVM arguments & classpath builder
+│   │   │   │   ├── multirt/            # JdkDownloadManager (JDK 8-26 catalog & installer)
+│   │   │   │   └── version/            # Version metadata & modpack parsers
+│   │   │   ├── setting/                # AllSettings MMKV configurations
+│   │   │   ├── ui/                     # Jetpack Compose UI
+│   │   │   │   ├── components/         # Tactile smooth buttons, dialogs, cards
+│   │   │   │   ├── screens/            # Screens (LauncherScreen, DownloadScreen, etc.)
+│   │   │   │   └── theme/              # Milk White / Obsidian Orange color palettes & Shapes
+│   │   │   └── viewmodel/              # Reactive ViewModels & UI state holders
+│   │   └── res/                        # Drawables, layouts, localized strings (20+ languages)
+│   └── build.gradle.kts                # Module build configuration
+├── ColorPicker/                        # Color picker library module
+├── LayerController/                    # Controller mapping & layout editor module
+├── Terracotta/                         # Multiplayer tunneling module
+├── build.gradle.kts                    # Root build script
+├── gradle.properties                   # Project branding & versioning
+└── settings.gradle.kts                 # Multi-project gradle inclusion
+```
+
+---
+
+## 🚀 Getting Started (Build & Run)
+
+### Prerequisites
+
+- **Java Development Kit (JDK)**: JDK 17 or JDK 21
+- **Android SDK**:
+  - Minimum SDK: API 26 (Android 8.0 Oreo)
+  - Target SDK: API 35 (Android 15)
+- **Android NDK**: NDK `25.2.9519653`
+- **Build System**: Gradle 9.4.1 (included via `./gradlew`)
+
+### Local Setup & Compilation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/BladeLauncher/BladeLauncher.git
+   cd "Blade Launcher"
+   ```
+
+2. **Configure Android SDK**:
+   Create a `local.properties` file in the project root:
+   ```properties
+   sdk.dir=/path/to/your/Android/Sdk
+   ```
+
+3. **Compile Kotlin sources**:
+   ```bash
+   ./gradlew compileDebugKotlin
+   ```
+
+4. **Build Debug APK**:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   The generated APK will be located at:
+   `ZalithLauncher/build/outputs/apk/debug/ZalithLauncher-debug.apk`
+
+5. **Install on Device via ADB**:
+   ```bash
+   adb install -r ZalithLauncher/build/outputs/apk/debug/ZalithLauncher-debug.apk
+   ```
+
+---
+
+## ⚙️ Configuration & Environment
+
+| Property | Description | Location |
+|---|---|---|
+| `launcher_name` | Internal project identifier (`BladeLauncher`) | `gradle.properties` |
+| `launcher_app_name` | Display application name (`Blade Launcher`) | `gradle.properties` |
+| `oauth_client_id` | Optional Microsoft OAuth Client ID | `gradle.properties` / Env |
+| `curseforge_api_key` | Optional CurseForge Developer API Key | `gradle.properties` / Env |
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+Run unit tests and verification checks:
+
+```bash
+# Run unit tests across modules
+./gradlew testDebugUnitTest
+
+# Lint and check style
+./gradlew lintDebug
+```
+
+---
+
+## ❓ Troubleshooting & FAQ
+
+### 1. Game crashes immediately upon launch
+- **Verify Java Version**: Go to **Settings** → **Java Runtime Manager** and click **Download JDK**. Ensure Java 17 or Java 21 is installed for modern Minecraft versions (1.17+).
+- **Check Renderer**: Switch to **Vulkan (Zink)** or **GL4ES 1.1.5** in **Settings** → **Renderer** depending on your GPU driver compatibility.
+
+### 2. Microsoft login times out or fails
+- Ensure network connectivity is stable. Use the embedded browser code flow or click "Get Device Code" to authenticate in an external browser.
+
+### 3. Mods failing to load
+- Ensure the selected Mod Loader (Fabric / Forge / NeoForge) version matches the installed Minecraft game version.
+
+---
+
+## 📜 License & Compliance Notice
+
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+See the [LICENSE](LICENSE) file for the full license text.
+
+### GPLv3 Section 7 Notice
+- **Blade Launcher** is an independent fork based on [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2) and [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher).
+- Pursuant to Section 7 of the GPLv3, this modified version uses the distinct name **Blade Launcher** and includes proper copyright and attribution notices to all upstream authors and open-source contributors.
+- *Minecraft is a registered trademark of Mojang Synergies AB. Blade Launcher is not affiliated with Mojang or Microsoft.*
+
+<div align="center">
+  <p>Made with ⚔️ by the Blade Launcher Team & Open Source Community.</p>
+</div>

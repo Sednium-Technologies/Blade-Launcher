@@ -18,24 +18,42 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.search
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformDisplayLabel
@@ -292,124 +310,301 @@ fun SearchAssetsScreen(
         Triple(parentScreenKey, parentCurrentKey, false),
         Triple(screenKey, currentKey, false)
     ) { isVisible ->
-        Row {
-            val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
-            ResultListLayout(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(7f)
-                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                classes = platformClasses,
-                searchState = viewModel.searchResult,
-                onReload = {
-                    viewModel.search()
-                },
-                swapToDownload = swapToDownload,
-                onPreviousPage = { pageNumber ->
-                    previousPage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { previousPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(previousPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索上一页
+        val searchedMcMods by viewModel.searchedMcMods.collectAsStateWithLifecycle()
+        val searchedVersions by viewModel.searchedVersions.collectAsStateWithLifecycle()
+
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val isPortrait = maxWidth < 600.dp
+            var showPortraitFilter by remember { mutableStateOf(false) }
+
+            if (isPortrait) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { showPortraitFilter = true },
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_search),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = if (viewModel.searchFilter.searchName.isNotEmpty())
+                                        viewModel.searchFilter.searchName
+                                    else "Search Modrinth / CurseForge...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (viewModel.searchFilter.searchName.isNotEmpty())
+                                        MaterialTheme.colorScheme.onSurface
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                    )
-                },
-                onNextPage = { pageNumber, isLastPage ->
-                    nextPage(
-                        pageNumber = pageNumber,
-                        isLastPage = isLastPage,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索下一页
+
+                        IconButton(
+                            onClick = { showPortraitFilter = !showPortraitFilter }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_filter_alt_outlined),
+                                contentDescription = "Filters",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    )
-                },
-                onNavigatePage = { pageNumber ->
-                    navigatePage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                    }
+
+                    if (showPortraitFilter) {
+                        Dialog(onDismissRequest = { showPortraitFilter = false }) {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(0.85f),
+                                shape = MaterialTheme.shapes.extraLarge,
+                                color = MaterialTheme.colorScheme.surface
+                            ) {
+                                SearchFilter(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(all = 12.dp),
+                                    enablePlatform = enablePlatform,
+                                    searchPlatform = viewModel.searchPlatform,
+                                    onPlatformChange = {
+                                        viewModel.searchPlatform = it
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
+                                        )
+                                        onPlatformChange(it)
+                                    },
+                                    searchName = viewModel.searchFilter.searchName,
+                                    onSearchNameChange = {
+                                        viewModel.updateNameFilter(it)
+                                    },
+                                    onSearch = {
+                                        viewModel.resetSearch()
+                                        showPortraitFilter = false
+                                    },
+                                    searchedMcMods = searchedMcMods,
+                                    searchedVersions = searchedVersions,
+                                    gameVersion = viewModel.searchFilter.gameVersion,
+                                    onGameVersionChange = {
+                                        viewModel.updateVersionFilter(it)
+                                    },
+                                    sortField = viewModel.searchFilter.sortField,
+                                    onSortFieldChange = {
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(sortField = it)
+                                        )
+                                    },
+                                    allCategories = categories,
+                                    categories = viewModel.searchFilter.categories,
+                                    onCategoryChanged = { categories ->
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(categories = categories)
+                                        )
+                                    },
+                                    enableModLoader = enableModLoader,
+                                    modloaders = modloaders,
+                                    modloader = viewModel.searchFilter.modloader,
+                                    onModLoaderChange = {
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(modloader = it)
+                                        )
+                                    },
+                                    extraFilter = extraFilter
+                                )
+                            }
+                        }
+                    }
+
+                    ResultListLayout(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        classes = platformClasses,
+                        searchState = viewModel.searchResult,
+                        onReload = {
+                            viewModel.search()
                         },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索目标页
+                        swapToDownload = swapToDownload,
+                        onPreviousPage = { pageNumber ->
+                            previousPage(
+                                pageNumber = pageNumber,
+                                pages = viewModel.pages,
+                                index = viewModel.searchFilter.index,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { previousPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(previousPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
+                        },
+                        onNextPage = { pageNumber, isLastPage ->
+                            nextPage(
+                                pageNumber = pageNumber,
+                                isLastPage = isLastPage,
+                                pages = viewModel.pages,
+                                index = viewModel.searchFilter.index,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { nextPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
+                        },
+                        onNavigatePage = { pageNumber ->
+                            navigatePage(
+                                pageNumber = pageNumber,
+                                pages = viewModel.pages,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { nextPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
                         }
                     )
                 }
-            )
+            } else {
+                Row {
+                    val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
+                    ResultListLayout(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(7f)
+                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        classes = platformClasses,
+                        searchState = viewModel.searchResult,
+                        onReload = {
+                            viewModel.search()
+                        },
+                        swapToDownload = swapToDownload,
+                        onPreviousPage = { pageNumber ->
+                            previousPage(
+                                pageNumber = pageNumber,
+                                pages = viewModel.pages,
+                                index = viewModel.searchFilter.index,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { previousPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(previousPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
+                        },
+                        onNextPage = { pageNumber, isLastPage ->
+                            nextPage(
+                                pageNumber = pageNumber,
+                                isLastPage = isLastPage,
+                                pages = viewModel.pages,
+                                index = viewModel.searchFilter.index,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { nextPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
+                        },
+                        onNavigatePage = { pageNumber ->
+                            navigatePage(
+                                pageNumber = pageNumber,
+                                pages = viewModel.pages,
+                                limit = viewModel.searchFilter.limit,
+                                onSuccess = { nextPage ->
+                                    viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                                },
+                                onSearch = { newIndex ->
+                                    viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                                    viewModel.search()
+                                }
+                            )
+                        }
+                    )
 
-            val xOffset by swapAnimateDpAsState(
-                targetValue = 40.dp,
-                swapIn = isVisible,
-                isHorizontal = true
-            )
-            val searchedMcMods by viewModel.searchedMcMods.collectAsStateWithLifecycle()
-            val searchedVersions by viewModel.searchedVersions.collectAsStateWithLifecycle()
-            SearchFilter(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(3f)
-                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp, end = 12.dp),
-                enablePlatform = enablePlatform,
-                searchPlatform = viewModel.searchPlatform,
-                onPlatformChange = {
-                    viewModel.searchPlatform = it
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
+                    val xOffset by swapAnimateDpAsState(
+                        targetValue = 40.dp,
+                        swapIn = isVisible,
+                        isHorizontal = true
                     )
-                    onPlatformChange(it)
-                },
-                searchName = viewModel.searchFilter.searchName,
-                onSearchNameChange = {
-                    viewModel.updateNameFilter(it)
-                },
-                onSearch = {
-                    viewModel.resetSearch()
-                },
-                searchedMcMods = searchedMcMods,
-                searchedVersions = searchedVersions,
-                gameVersion = viewModel.searchFilter.gameVersion,
-                onGameVersionChange = {
-                    viewModel.updateVersionFilter(it)
-                },
-                sortField = viewModel.searchFilter.sortField,
-                onSortFieldChange = {
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(sortField = it)
+                    SearchFilter(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(3f)
+                            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp, end = 12.dp),
+                        enablePlatform = enablePlatform,
+                        searchPlatform = viewModel.searchPlatform,
+                        onPlatformChange = {
+                            viewModel.searchPlatform = it
+                            viewModel.researchWithFilter(
+                                viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
+                            )
+                            onPlatformChange(it)
+                        },
+                        searchName = viewModel.searchFilter.searchName,
+                        onSearchNameChange = {
+                            viewModel.updateNameFilter(it)
+                        },
+                        onSearch = {
+                            viewModel.resetSearch()
+                        },
+                        searchedMcMods = searchedMcMods,
+                        searchedVersions = searchedVersions,
+                        gameVersion = viewModel.searchFilter.gameVersion,
+                        onGameVersionChange = {
+                            viewModel.updateVersionFilter(it)
+                        },
+                        sortField = viewModel.searchFilter.sortField,
+                        onSortFieldChange = {
+                            viewModel.researchWithFilter(
+                                viewModel.searchFilter.copy(sortField = it)
+                            )
+                        },
+                        allCategories = categories,
+                        categories = viewModel.searchFilter.categories,
+                        onCategoryChanged = { categories ->
+                            viewModel.researchWithFilter(
+                                viewModel.searchFilter.copy(categories = categories)
+                            )
+                        },
+                        enableModLoader = enableModLoader,
+                        modloaders = modloaders,
+                        modloader = viewModel.searchFilter.modloader,
+                        onModLoaderChange = {
+                            viewModel.researchWithFilter(
+                                viewModel.searchFilter.copy(modloader = it)
+                            )
+                        },
+                        extraFilter = extraFilter
                     )
-                },
-                allCategories = categories,
-                categories = viewModel.searchFilter.categories,
-                onCategoryChanged = { categories ->
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(categories = categories)
-                    )
-                },
-                enableModLoader = enableModLoader,
-                modloaders = modloaders,
-                modloader = viewModel.searchFilter.modloader,
-                onModLoaderChange = {
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(modloader = it)
-                    )
-                },
-                extraFilter = extraFilter
-            )
+                }
+            }
         }
     }
 }

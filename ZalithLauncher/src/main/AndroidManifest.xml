@@ -50,7 +50,7 @@
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="sensorPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -109,7 +109,7 @@
         <activity
             android:name=".ui.activities.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorPortrait" />
         <activity
             android:name=".ui.activities.ControlEditorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
@@ -122,7 +122,7 @@
             android:screenOrientation="sensorLandscape" />
         <activity android:name=".ui.activities.ErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorPortrait" />
         <activity android:name=".ui.activities.FatalErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|keyboard|navigation"
             android:theme="@style/Theme.Material3.DayNight.Dialog.Alert" />

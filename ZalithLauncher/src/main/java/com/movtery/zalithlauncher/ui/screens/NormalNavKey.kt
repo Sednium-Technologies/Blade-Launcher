@@ -49,6 +49,10 @@ sealed interface NormalNavKey : TitledNavKey {
     }
     /** Web屏幕 */
     @Serializable data class WebScreen(val url: String) : NormalNavKey
+    /** MC Mods Updater 屏幕 */
+    @Serializable data class McModsUpdater(val initialUrl: String = "https://modrinth.com/mods") : NormalNavKey {
+        override val title: Int = R.string.mc_mods_updater_title
+    }
     /** 版本管理屏幕 */
     @Serializable data object VersionsManager : NormalNavKey {
         override val title: Int = R.string.page_title_version_list

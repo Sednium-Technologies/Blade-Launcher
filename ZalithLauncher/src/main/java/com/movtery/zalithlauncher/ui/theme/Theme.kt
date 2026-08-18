@@ -681,6 +681,7 @@ fun ZalithLauncherTheme(
             colorScheme = currentDisplayScheme,
             motionScheme = MotionScheme.expressive(),
             typography = AppTypography,
+            shapes = AppShapes,
             content = content
         )
     }

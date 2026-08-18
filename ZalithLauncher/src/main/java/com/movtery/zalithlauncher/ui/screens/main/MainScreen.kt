@@ -93,6 +93,7 @@ import com.movtery.zalithlauncher.ui.screens.content.HomePageEditorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
+import com.movtery.zalithlauncher.ui.screens.content.McModsUpdaterScreen
 import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
@@ -543,6 +544,13 @@ private fun NavigationUI(
                 }
                 entry<NormalNavKey.WebScreen> { key ->
                     WebViewScreen(
+                        key = key,
+                        backStackViewModel = screenBackStackModel,
+                        eventViewModel = eventViewModel
+                    )
+                }
+                entry<NormalNavKey.McModsUpdater> { key ->
+                    McModsUpdaterScreen(
                         key = key,
                         backStackViewModel = screenBackStackModel,
                         eventViewModel = eventViewModel
