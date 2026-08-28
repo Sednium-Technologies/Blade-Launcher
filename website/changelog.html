@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changelog — Blade Launcher</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a href="index.html" class="brand"><span class="cut"></span>Blade Launcher</a>
+    <button class="btn-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="changelog.html" class="active">Changelog</a>
+      <a href="index.html#download" class="nav-cta">Get the app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="docs-hero">
+  <div class="wrap">
+    <div class="eyebrow">Changelog</div>
+    <h1 class="docs-title">Build log</h1>
+    <p class="hero-sub">Blade Launcher hasn't shipped a public build yet — this is the development log, kept honest as the app comes together.</p>
+  </div>
+</header>
+
+<div class="wrap changelog-layout">
+
+  <div class="cl-entry">
+    <div class="cl-side">
+      <span class="cl-version mono">2.4.7-debug</span>
+      <span class="cl-date">In development</span>
+    </div>
+    <div class="cl-body">
+      <div class="cl-item">
+        <span class="tag tag-added">Added</span>
+        <p>Offline (nickname) accounts, alongside Microsoft sign-in — for singleplayer, LAN, and offline-mode servers like Aternos.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-added">Added</span>
+        <p>Custom skin and cape import, by direct URL or from a local file, with format and dimension validation.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-added">Added</span>
+        <p>Renderer recommendation: selecting a Minecraft version now checks it against the device's GPU and suggests GL4ES, Zink, or VirGL — never switched automatically.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-added">Added</span>
+        <p>Java 25 runtime, downloadable per-instance from the Runtime Manager alongside 8, 11, 17, and 21.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-fixed">Fixed</span>
+        <p>Minecraft 26.2+ failing to launch with a missing-method crash in the bundled GLFW implementation.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-changed">Changed</span>
+        <p>Rebranded from the upstream ZalithLauncher2 namespace to Blade Launcher, including the app's internal package identity — every upstream credit and license kept intact.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-changed">Changed</span>
+        <p>Settings, version management, and download screens moved from a fixed side rail to a bottom navigation bar, giving content the full screen width on phones.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-changed">Changed</span>
+        <p>About screen now leads with Blade Launcher and Sednium's own credit, ahead of the preserved upstream acknowledgements.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-fixed">Fixed</span>
+        <p>Account List, Controls, and several other settings screens no longer wrap long labels one character per line — a width-constraint bug found across multiple shared list components.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-fixed">Fixed</span>
+        <p>System status bar was hidden outside of actual gameplay; restored everywhere except the in-game screen.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cl-entry">
+    <div class="cl-side">
+      <span class="cl-version mono">Base</span>
+      <span class="cl-date">Fork point</span>
+    </div>
+    <div class="cl-body">
+      <div class="cl-item">
+        <span class="tag tag-added">Added</span>
+        <p>Forked from ZalithLauncher2 — process-isolated JVM architecture, Modrinth/CurseForge browsing, and the existing GL4ES/Zink renderer foundation carried over as-is.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-note">
+      Blade Launcher is an unofficial modified version of ZalithLauncher2, developed by Sednium.
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Project</h4>
+        <a href="docs.html">Documentation</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="docs.html#license">GPLv3 &amp; credits</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

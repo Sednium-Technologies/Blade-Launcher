@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blade Launcher — Fast, Modern Minecraft Launcher for Android</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a href="index.html" class="brand"><span class="cut"></span>Blade Launcher</a>
+    <button class="btn-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" class="active">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="changelog.html">Changelog</a>
+      <a href="#download" class="nav-cta">Get the app</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow">Android Minecraft Launcher</div>
+      <h1 class="hero-title">Sharp, fast <span class="slash-l">mobile</span> Minecraft.</h1>
+      <p class="hero-sub">A refined, portrait-first Minecraft launcher for Android. Built for seamless offline &amp; Microsoft accounts, custom skins &amp; capes, and optimized GPU renderers.</p>
+      <div class="hero-actions">
+        <a href="#download" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download APK
+        </a>
+        <a href="docs.html" class="btn btn-secondary">Read the Docs</a>
+      </div>
+      <p class="hero-fine">Free and open source under GPLv3. Supports Android 8.0+.</p>
+    </div>
+
+    <div class="hero-device">
+      <div class="device">
+        <div class="device-notch"></div>
+        <div class="device-screen">
+          <div class="d-topbar">Blade Launcher</div>
+          <div class="d-account">
+            <div class="d-avatar"></div>
+            <div class="d-account-text">
+              <span class="d-name">Steve</span>
+              <span class="d-sub">Offline / Local Account</span>
+            </div>
+          </div>
+          <div class="d-launch">LAUNCH GAME</div>
+          <div class="d-row">
+            <span>Minecraft Version</span>
+            <span class="d-tag">1.21.4 (Fabric)</span>
+          </div>
+          <div class="d-row">
+            <span>Runtime Engine</span>
+            <span class="d-tag">Java 21 JRE</span>
+          </div>
+          <div class="d-row">
+            <span>Active Renderer</span>
+            <span class="d-tag">GL4ES 1.1.6</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="wrap strip-grid">
+    <div>
+      <span class="strip-num" data-count="5">5</span>
+      <span class="strip-label">Java Runtimes<br>(Java 8, 11, 17, 21, 25)</span>
+    </div>
+    <div>
+      <span class="strip-num" data-count="3">3</span>
+      <span class="strip-label">GPU Renderers<br>(GL4ES, Zink, VirGL)</span>
+    </div>
+    <div>
+      <span class="strip-num" data-count="100">100</span>
+      <span class="strip-label">% Open Source<br>GPLv3 Licensed</span>
+    </div>
+    <div>
+      <span class="strip-num" data-count="0">0</span>
+      <span class="strip-label">Ads or Trackers<br>Privacy-First Design</span>
+    </div>
+  </div>
+</div>
+
+<section class="features">
+  <div class="wrap">
+    <div class="eyebrow">Features</div>
+    <h2 class="section-title">Engineered for real mobile gameplay.</h2>
+    <div class="feature-grid">
+      <div class="feature card">
+        <div class="f-mark mono">01 / ACCOUNTS</div>
+        <h3>Dual Account Support</h3>
+        <p>Sign in with your official Microsoft account for Realms &amp; verified servers, or use offline local nicknames for singleplayer and LAN worlds.</p>
+      </div>
+
+      <div class="feature card">
+        <div class="f-mark mono">02 / WARDROBE</div>
+        <h3>Custom Skins &amp; Capes</h3>
+        <p>Apply 3D skins and capes directly via image URL or local storage files, with automatic dimension and model format validation.</p>
+      </div>
+
+      <div class="feature card">
+        <div class="f-mark mono">03 / PERFORMANCE</div>
+        <h3>Intelligent Renderer Suggestions</h3>
+        <p>Blade Launcher inspects your device GPU capabilities and suggests the most performant renderer — GL4ES, Vulkan Zink, or VirGL.</p>
+      </div>
+
+      <div class="feature card">
+        <div class="f-mark mono">04 / RUNTIMES</div>
+        <h3>On-Demand Java Manager</h3>
+        <p>Download and assign isolated Java runtimes (Java 8 to Java 25) per-instance, saving storage while ensuring full version compatibility.</p>
+      </div>
+
+      <div class="feature card">
+        <div class="f-mark mono">05 / MODS</div>
+        <h3>Modrinth &amp; CurseForge</h3>
+        <p>Search, install, and batch-update mods and modpacks directly inside the launcher with automatic dependency resolution.</p>
+      </div>
+
+      <div class="feature card">
+        <div class="f-mark mono">06 / CONTROLS</div>
+        <h3>Custom Touch &amp; Gamepad</h3>
+        <p>Tailor your on-screen touch layout with draggable controls or plug in external Bluetooth/USB gamepads with full button mapping.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download" class="download">
+  <div class="wrap download-inner">
+    <div class="download-copy">
+      <div class="eyebrow">Get Started</div>
+      <h2 class="section-title">Ready to play Minecraft on your phone?</h2>
+      <p>Download the latest debug build APK directly and start playing in minutes.</p>
+    </div>
+    <div class="download-card card">
+      <span class="download-version mono">v2.4.7-debug</span>
+      <p>Universal Android APK supporting ARM64, ARMv7, x86, and x86_64 devices running Android 8.0 (API 26) or higher.</p>
+      <a href="https://github.com/Sednium-Technologies/Blade-Launcher/releases" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download from Releases
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-note">
+      Blade Launcher is an unofficial modified version of ZalithLauncher2, developed by Sednium.
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Project</h4>
+        <a href="docs.html">Documentation</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="docs.html#license">GPLv3 &amp; credits</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
