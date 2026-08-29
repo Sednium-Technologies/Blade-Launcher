@@ -1,117 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Docs — Blade Launcher</title>
+<meta name="description" content="Technical guide and documentation for Blade Launcher Android Java edition launcher.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <nav class="site-nav">
   <div class="wrap">
-    <a href="index.html" class="brand"><span class="cut"></span>Blade Launcher</a>
-    <button class="btn-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-    </button>
+    <a href="index.html" class="brand">
+      <span class="logo-icon"></span>
+      Blade Launcher
+    </a>
+    
     <div class="nav-links" id="navLinks">
       <a href="index.html">Home</a>
       <a href="docs.html" class="active">Docs</a>
       <a href="changelog.html">Changelog</a>
+      <a href="index.html#matcher">Runtime Matcher</a>
+      <a href="index.html#compare">Compare</a>
       <a href="index.html#download" class="nav-cta">Get the app</a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="https://github.com/Sednium-Technologies/Blade-Launcher" class="github-badge" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span>GitHub</span>
+        <span class="github-stars">v2.4.7</span>
+      </a>
+
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+
+      <button class="btn-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
     </div>
   </div>
 </nav>
 
 <header class="docs-hero">
   <div class="wrap">
-    <div class="eyebrow">Documentation</div>
+    <div class="eyebrow"><span class="eyebrow-dot"></span> Documentation</div>
     <h1 class="docs-title">How Blade Launcher works</h1>
-    <p class="hero-sub">Everything here reflects the app as it's actually built — not a roadmap.</p>
+    <p class="hero-sub">Complete guide to architecture, isolated Java runtimes, GPU rendering backends, and modpack management.</p>
   </div>
 </header>
 
 <div class="wrap docs-layout">
   <aside class="docs-toc">
     <span class="toc-label">On this page</span>
-    <a href="#runtimes">Java runtimes</a>
-    <a href="#renderer">Choosing a renderer</a>
-    <a href="#accounts">Accounts</a>
-    <a href="#mods">Mods &amp; modpacks</a>
+    <a href="#runtimes">Java Runtimes (8–25)</a>
+    <a href="#renderer">Choosing a Renderer</a>
+    <a href="#accounts">Dual Accounts &amp; Wardrobe</a>
+    <a href="#mods">Mods &amp; Modpacks</a>
     <a href="#troubleshoot">Troubleshooting</a>
-    <a href="#license" class="toc-license">GPLv3 &amp; credits</a>
+    <a href="#license">GPLv3 &amp; Upstream Credits</a>
   </aside>
 
   <main class="docs-content">
 
     <section id="runtimes" class="doc-block">
-      <h2>Java runtimes</h2>
-      <p>Open Settings → Java, and Blade Launcher shows every JRE it can run: <span class="mono">8</span>, <span class="mono">11</span>, <span class="mono">17</span>, <span class="mono">21</span>, and <span class="mono">25</span>. None of them ship inside the app install — each is fetched on demand from the Runtime Manager, so you only download what a given instance actually needs.</p>
+      <h2>Java runtimes (8 through 25)</h2>
+      <p>Under <strong>Settings → Java</strong>, Blade Launcher provides on-demand management for Java runtimes: <span class="mono">8</span>, <span class="mono">11</span>, <span class="mono">17</span>, <span class="mono">21</span>, and <span class="mono">25</span>. None of them bloat the initial APK install — each JRE is downloaded on demand into an isolated directory for that version.</p>
+      
       <div class="doc-table">
-        <div class="dt-row dt-head"><span>Minecraft version</span><span>Recommended runtime</span></div>
-        <div class="dt-row"><span>1.16 and earlier</span><span class="mono">Java 8</span></div>
+        <div class="dt-row dt-head"><span>Minecraft Version</span><span>Recommended Runtime</span></div>
+        <div class="dt-row"><span>1.16.5 and earlier</span><span class="mono">Java 8 / Java 11</span></div>
         <div class="dt-row"><span>1.17 – 1.20.4</span><span class="mono">Java 17</span></div>
-        <div class="dt-row"><span>1.20.5 and later</span><span class="mono">Java 21</span></div>
+        <div class="dt-row"><span>1.20.5 – 1.21.4</span><span class="mono">Java 21</span></div>
         <div class="dt-row"><span>26.1 and later</span><span class="mono">Java 25</span></div>
       </div>
-      <p>These are recommendations, not requirements — a version can be assigned any installed runtime from its instance settings.</p>
+      <p>Custom JVM launch arguments (e.g. <span class="mono">-Xms</span>, <span class="mono">-Xmx</span>, garbage collector parameters) can be configured per-instance.</p>
     </section>
 
     <section id="renderer" class="doc-block">
       <h2>Choosing a renderer</h2>
-      <p>Three rendering backends live under Settings → Renderer:</p>
-      <ul class="doc-list">
-        <li><strong>GL4ES</strong> — the broadly-compatible default. Works everywhere, including most Adreno GPUs.</li>
-        <li><strong>Vulkan Zink</strong> — used automatically for Minecraft 26.2 and later on devices with real Vulkan 1.2 support. Faster where it's supported, but not every GPU qualifies.</li>
-        <li><strong>VirGL</strong> — an alternative path for specific driver/device combinations where Zink isn't the better fit.</li>
+      <p>Three rendering backends live under <strong>Settings → Renderer</strong>:</p>
+      <ul class="doc-list" style="padding-left:20px; margin-bottom:16px;">
+        <li style="margin-bottom:8px;"><strong>GL4ES</strong> — The rock-solid default. Translates desktop OpenGL 2.1/3.x to OpenGL ES. Works on virtually all Android hardware, especially Qualcomm Adreno GPUs.</li>
+        <li style="margin-bottom:8px;"><strong>Vulkan Zink</strong> — Modern OpenGL-over-Vulkan implementation. Used automatically for Minecraft 26.2+ on devices with full Vulkan 1.2 drivers.</li>
+        <li style="margin-bottom:8px;"><strong>VirGL</strong> — Virtualized rendering path for specialized device and driver configurations.</li>
       </ul>
-      <p>When you select a Minecraft version, Blade Launcher checks it against your device's actual GPU capabilities and suggests a renderer — it won't switch anything without you confirming. On Adreno hardware, that recommendation stays on GL4ES even for newer versions, since Zink support there is inconsistent.</p>
+      <p>Blade Launcher actively queries device Vulkan capabilities via native JNI and recommends the best option without unexpected automatic overrides.</p>
     </section>
 
     <section id="accounts" class="doc-block">
-      <h2>Accounts</h2>
-      <p>Two account types, for two different situations:</p>
-      <div class="doc-cols">
+      <h2>Dual Accounts &amp; Wardrobe</h2>
+      <p>Blade Launcher supports both official authenticated players and offline local players:</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;">
         <div class="card">
-          <h3>Microsoft account</h3>
-          <p>Required for Realms and any server that verifies ownership — Hypixel and most large public servers included. Sign in from Account List → Add Account.</p>
+          <h3>Microsoft Account</h3>
+          <p>Required for Realms, Hypixel, and all servers enforcing online ownership verification. Sign in directly with secure OAuth token caching.</p>
         </div>
         <div class="card">
-          <h3>Offline account</h3>
-          <p>A local nickname, no sign-in. Works for singleplayer, LAN worlds, and servers explicitly running in offline mode — including free hosts like Aternos, when the server owner has set that up. It will not get you into servers that check for a verified purchase, by design.</p>
+          <h3>Offline Account</h3>
+          <p>Create a local nickname with zero sign-in. Ideal for singleplayer, LAN worlds, and servers with online-mode=false (e.g. Aternos).</p>
         </div>
       </div>
-      <p>Either account type can have a custom skin and cape — pasted from a direct image URL, or imported from a file on your device.</p>
+      <p>Both account types support custom 3D skins (Steve classic and Alex slim) and cape textures imported via direct URL or local storage PNGs.</p>
     </section>
 
     <section id="mods" class="doc-block">
-      <h2>Mods &amp; modpacks</h2>
-      <p>The Download tab searches Modrinth and CurseForge directly. Installing a mod resolves its dependencies automatically; installing a modpack sets up matching mods, configs, and the recommended loader in one step.</p>
-      <p>Once mods are installed, the <strong>Mods Updater</strong> checks everything in an instance against the latest compatible versions and updates in batch, rather than one mod at a time.</p>
+      <h2>Mods &amp; Modpacks</h2>
+      <p>The Download section integrates directly with Modrinth and CurseForge APIs. Installing a mod automatically resolves all required dependencies; installing a modpack sets up matching loaders (Fabric, Forge, NeoForge, Quilt) in one touch.</p>
+      <p>The built-in <strong>Mods Updater</strong> allows batch-updating installed mods to newer compatible builds.</p>
     </section>
 
     <section id="troubleshoot" class="doc-block">
       <h2>Troubleshooting</h2>
-      <div class="doc-faq">
-        <details>
-          <summary>A version won't launch after picking a renderer</summary>
-          <p>Switch back to GL4ES from Settings → Renderer for that instance. If Zink was selected on a device without full Vulkan 1.2 support, this is the expected fallback — GL4ES works on effectively every device.</p>
-        </details>
-        <details>
-          <summary>My offline account can't join a server</summary>
-          <p>The server is running in online (verified) mode. This isn't a bug — it's the server's own anti-piracy check, and it requires a signed-in Microsoft account with a purchased copy of the game. It works the same way on every launcher, official or otherwise.</p>
-        </details>
-        <details>
-          <summary>A skin URL is rejected as the wrong size</summary>
-          <p>Blade Launcher expects a direct link to a PNG, not a webpage. Right-click (or long-press) the skin image itself on its source site and copy that direct image address, then paste that.</p>
-        </details>
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Game closes immediately after launch</h3>
+        <p>Ensure the correct Java version is selected for your Minecraft version (e.g. Java 21 for 1.21.4, Java 8 for 1.12.2). If using Zink renderer on unsupported hardware, switch to GL4ES.</p>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3>Skin URL rejected as wrong size</h3>
+        <p>Make sure you provide a direct PNG image URL (e.g. ending in .png or raw texture endpoint), not a webpage HTML link. Valid dimensions are 64×64, 64×32, or HD multiples (128×128, 256×256).</p>
       </div>
     </section>
 
     <section id="license" class="doc-block">
-      <h2>GPLv3 &amp; credits</h2>
-      <p>Blade Launcher is an unofficial modified version of <strong>ZalithLauncher2</strong> by MovTery, licensed under GPLv3. All upstream attributions — MovTery, PojavLauncher, PCL2, HMCL, and every third-party library — are preserved in full inside the app, under Settings → About.</p>
-      <p class="footer-note" style="margin-top:14px;">Not affiliated with Mojang, Microsoft, or Technoblade's estate. Minecraft is a trademark of Mojang Synergies AB.</p>
+      <h2>GPLv3 &amp; Upstream Credits</h2>
+      <p>Blade Launcher is an open-source project based on <strong>ZalithLauncher2</strong> by MovTery, released under the GNU General Public License v3.0.</p>
+      <p>All upstream attributions — MovTery, PojavLauncher, HMCL, PCL2, and dependent open source libraries — are strictly maintained in the application under <strong>Settings → About</strong>.</p>
     </section>
 
   </main>
@@ -119,19 +135,36 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <div class="footer-note">
-      Blade Launcher is an unofficial modified version of ZalithLauncher2, developed by Sednium.
+    <div class="footer-brand">
+      <h3>Blade Launcher</h3>
+      <p class="footer-note">
+        An unofficial modified version of ZalithLauncher2, developed and maintained by Sednium under GPLv3.
+      </p>
     </div>
-    <div class="footer-links">
-      <div class="footer-col">
-        <h4>Project</h4>
-        <a href="docs.html">Documentation</a>
-        <a href="changelog.html">Changelog</a>
-      </div>
-      <div class="footer-col">
-        <h4>Legal</h4>
-        <a href="#license">GPLv3 &amp; credits</a>
-      </div>
+
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <a href="index.html">Home</a>
+      <a href="docs.html">Documentation</a>
+      <a href="changelog.html">Changelog</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="https://github.com/Sednium-Technologies/Blade-Launcher" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+      <a href="https://github.com/Sednium-Technologies/Blade-Launcher/releases" target="_blank" rel="noopener noreferrer">Release Downloads</a>
+    </div>
+
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="docs.html#license">GPLv3 &amp; Upstream Credits</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>© 2026 Sednium Technologies. Open source under GNU GPLv3.</span>
+      <span>Not affiliated with Mojang Studios or Microsoft.</span>
     </div>
   </div>
 </footer>
