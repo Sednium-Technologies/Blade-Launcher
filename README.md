@@ -25,6 +25,7 @@
 - [🌐 MC Mods Updater Hub](#-mc-mods-updater-hub)
 - [🛠️ Tech Stack & Architecture](#️-tech-stack--architecture)
 - [🏗️ Project Structure](#️-project-structure)
+- [🌐 Project Website](#-project-website)
 - [🚀 Getting Started (Build & Run)](#-getting-started-build--run)
 - [⚙️ Configuration & Environment](#️-configuration--environment)
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
@@ -159,34 +160,55 @@ The **MC Mods Updater** view provides an integrated embedded WebView designed to
 ## 🏗️ Project Structure
 
 ```
-Blade-Launcher/
-├── ZalithLauncher/                     # Main Android application module
-│   ├── src/main/
-│   │   ├── AndroidManifest.xml         # Manifest (Portrait Launcher + Landscape Game)
-│   │   ├── java/com/movtery/zalithlauncher/
-│   │   │   ├── components/             # Core components (JRE metadata, sound, controllers)
-│   │   │   ├── coroutine/              # TaskSystem async worker pool
-│   │   │   ├── game/                   # Game launching engine
-│   │   │   │   ├── account/            # Microsoft OAuth & offline account managers
-│   │   │   │   ├── download/           # Game files, assets & Modrinth/CurseForge APIs
-│   │   │   │   ├── launch/             # GameLauncher JVM arguments & classpath builder
-│   │   │   │   ├── multirt/            # JdkDownloadManager (JDK 8-26 catalog & installer)
-│   │   │   │   └── version/            # Version metadata & modpack parsers
-│   │   │   ├── setting/                # AllSettings MMKV configurations
-│   │   │   ├── ui/                     # Jetpack Compose UI
-│   │   │   │   ├── components/         # Tactile smooth buttons, dialogs, cards
-│   │   │   │   ├── screens/            # Screens (LauncherScreen, DownloadScreen, etc.)
-│   │   │   │   └── theme/              # Milk White / Obsidian Orange color palettes & Shapes
-│   │   │   └── viewmodel/              # Reactive ViewModels & UI state holders
-│   │   └── res/                        # Drawables, layouts, localized strings (20+ languages)
-│   └── build.gradle.kts                # Module build configuration
-├── ColorPicker/                        # Color picker library module
-├── LayerController/                    # Controller mapping & layout editor module
-├── Terracotta/                         # Multiplayer tunneling module
-├── build.gradle.kts                    # Root build script
-├── gradle.properties                   # Project branding & versioning
-└── settings.gradle.kts                 # Multi-project gradle inclusion
+Blade-Launcher/                         # Repository root
+├── app/                                 # Android project root (Gradle multi-module)
+│   ├── settings.gradle.kts              # Includes: BladeLauncher, LWJGL, LayerController,
+│   │                                     # ColorPicker, Terracotta
+│   ├── BladeLauncher/                   # Main Android application module
+│   │   ├── build.gradle.kts             # Module build config, signing, JRE packaging
+│   │   ├── gradle.properties            # Branding, versioning, default debug signing
+│   │   └── src/main/
+│   │       ├── AndroidManifest.xml      # Manifest (Portrait Launcher + Landscape Game)
+│   │       ├── java/com/sednium/bladelauncher/
+│   │       │   ├── components/          # Core components (JRE metadata, sound, controllers)
+│   │       │   ├── coroutine/           # TaskSystem async worker pool
+│   │       │   ├── game/                # Game launching engine
+│   │       │   │   ├── account/         # Microsoft OAuth & offline account managers
+│   │       │   │   ├── download/        # Game files, assets & Modrinth/CurseForge APIs
+│   │       │   │   ├── launch/          # GameLauncher JVM arguments & classpath builder
+│   │       │   │   ├── multirt/         # JdkDownloadManager (JDK 8-26 catalog & installer)
+│   │       │   │   └── version/         # Version metadata & modpack parsers
+│   │       │   ├── setting/             # AllSettings MMKV configurations
+│   │       │   ├── ui/                  # Jetpack Compose UI
+│   │       │   │   ├── components/      # Tactile smooth buttons, dialogs, cards
+│   │       │   │   ├── screens/         # Screens (LauncherScreen, DownloadScreen, etc.)
+│   │       │   │   └── theme/           # Milk White / Obsidian Orange color palettes & Shapes
+│   │       │   └── viewmodel/           # Reactive ViewModels & UI state holders
+│   │       └── res/                     # Drawables, layouts, localized strings (20+ languages)
+│   ├── LWJGL/                           # LWJGL3 GLFW bridge module
+│   ├── LayerController/                 # Controller mapping & layout editor module
+│   ├── ColorPicker/                     # Color picker library module
+│   └── Terracotta/                      # Multiplayer tunneling module (P2P via EasyTier)
+├── website/                             # Project website (static, light theme)
+│   ├── index.html                       # Landing page
+│   ├── docs.html                        # Documentation
+│   ├── changelog.html                   # Build/change log
+│   ├── styles.css / script.js
+├── README.md
+└── LICENSE
 ```
+
+---
+
+## 🌐 Project Website
+
+The `website/` folder contains Blade Launcher's static project site — a landing page, documentation, and changelog, sharing one stylesheet and script:
+
+- [`website/index.html`](website/index.html) — overview, feature highlights
+- [`website/docs.html`](website/docs.html) — runtime, renderer, and account setup guides
+- [`website/changelog.html`](website/changelog.html) — development build log
+
+Open `website/index.html` directly in a browser to preview; all three pages link to each other via relative paths, so keep the folder's files together.
 
 ---
 
@@ -205,18 +227,19 @@ Blade-Launcher/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/BladeLauncher/BladeLauncher.git
-   cd "Blade Launcher"
+   git clone https://github.com/Sednium-Technologies/Blade-Launcher.git
+   cd Blade-Launcher
    ```
 
 2. **Configure Android SDK**:
-   Create a `local.properties` file in the project root:
-   ```properties
-   sdk.dir=/path/to/your/Android/Sdk
+   The Gradle project root is `app/`, not the repository root — create `local.properties` there:
+   ```bash
+   echo "sdk.dir=/path/to/your/Android/Sdk" > app/local.properties
    ```
 
 3. **Compile Kotlin sources**:
    ```bash
+   cd app
    ./gradlew compileDebugKotlin
    ```
 
@@ -224,12 +247,12 @@ Blade-Launcher/
    ```bash
    ./gradlew assembleDebug
    ```
-   The generated APK will be located at:
-   `ZalithLauncher/build/outputs/apk/debug/ZalithLauncher-debug.apk`
+   The generated APK will be located under:
+   `app/BladeLauncher/build/outputs/apk/debug/` — the exact filename follows the pattern `BladeLauncher-Debug-<version>.apk`.
 
 5. **Install on Device via ADB**:
    ```bash
-   adb install -r ZalithLauncher/build/outputs/apk/debug/ZalithLauncher-debug.apk
+   adb install -r BladeLauncher/build/outputs/apk/debug/BladeLauncher-Debug-*.apk
    ```
 
 ---
@@ -238,10 +261,13 @@ Blade-Launcher/
 
 | Property | Description | Location |
 |---|---|---|
-| `launcher_name` | Internal project identifier (`BladeLauncher`) | `gradle.properties` |
-| `launcher_app_name` | Display application name (`Blade Launcher`) | `gradle.properties` |
+| `launcher_name` | Internal project identifier (`BladeLauncher`) | `app/BladeLauncher/gradle.properties` |
+| `launcher_app_name` | Display application name (`Blade Launcher`) | `app/BladeLauncher/gradle.properties` |
 | `oauth_client_id` | Optional Microsoft OAuth Client ID | `gradle.properties` / Env |
 | `curseforge_api_key` | Optional CurseForge Developer API Key | `gradle.properties` / Env |
+| `STORE_PASSWORD` / `KEY_PASSWORD` | **Release** signing credentials — read from environment variables first, falling back to gitignored `app/BladeLauncher/.store_password.txt` / `.key_password.txt`. Never committed. | Env / gitignored local file |
+
+> The debug build's signing password is a fixed value in `gradle.properties` for local development convenience only — as with Android's own default debug keystore, this is not distribution-sensitive. Release builds always use the environment/gitignored-file path above.
 
 ---
 
