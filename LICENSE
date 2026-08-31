@@ -647,6 +647,9 @@ the "copyright" line and a pointer to where the full notice is found.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+    Blade Launcher - a modified version of the above program Copyright (C) 2026 Sednium Technologies
+    This modified version is likewise free software, licensed under the same GNU General Public License v3 (or, at your option, any later version) as the original program above. Blade Launcher is an independent, unofficial fork; it is not affiliated with, endorsed by, or connected to the original author, Mojang, or Microsoft.
+
 Also add information on how to contact you by electronic and paper mail.
 
   If the program does terminal interaction, make it output a short
