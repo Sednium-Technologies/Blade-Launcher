@@ -62,34 +62,77 @@ fun getLocalUUIDWithSkinModel(userName: String, skinModelType: SkinModelType): S
 }
 
 /**
- * 检查皮肤像素合法性，Minecraft仅支持使用64x64或64x32像素的皮肤
+ * 获取图像尺寸 (width, height)
+ */
+fun getImageDimensions(file: File): Pair<Int, Int> {
+    val options = BitmapFactory.Options()
+    options.inJustDecodeBounds = true
+    BitmapFactory.decodeFile(file.absolutePath, options)
+    return Pair(options.outWidth, options.outHeight)
+}
+
+/**
+ * 检查皮肤像素合法性，Minecraft支持64x64或64x32像素皮肤，以及正整数倍的HD高清皮肤（如128x128, 256x256等）
  */
 suspend fun validateSkinFile(skinFile: File): Boolean {
     return withContext(Dispatchers.IO) {
         val options = BitmapFactory.Options()
         options.inJustDecodeBounds = true
         BitmapFactory.decodeFile(skinFile.absolutePath, options)
-        options.isDualLayerSkin() || options.isClassicSkin()
+        options.isValidSkin()
     }
 }
 
 /**
- * 是否为双层皮肤：64x64
+ * 检查披风像素合法性，Minecraft披风通常为64x32或64x64，以及其正整数倍的HD高清贴图（如128x64, 256x128等）
  */
-fun BitmapFactory.Options.isDualLayerSkin(): Boolean {
-    return outWidth == 64 && outHeight == 64
+suspend fun validateCapeFile(capeFile: File): Boolean {
+    return withContext(Dispatchers.IO) {
+        val options = BitmapFactory.Options()
+        options.inJustDecodeBounds = true
+        BitmapFactory.decodeFile(capeFile.absolutePath, options)
+        options.isValidCape()
+    }
 }
 
 /**
- * 是否为经典皮肤（单层皮肤），早期皮肤类型，双手、双腿的贴图是分别共用的
- * 64x32
+ * 是否为有效的皮肤：
+ * 1. 双层皮肤：正方形（64x64, 128x128, 256x256, 512x512, 1024x1024等，且为64的倍数）
+ * 2. 单层经典皮肤：2:1 比例（64x32, 128x64, 256x128等，且宽度为64的倍数）
+ */
+fun BitmapFactory.Options.isValidSkin(): Boolean {
+    return isDualLayerSkin() || isClassicSkin()
+}
+
+/**
+ * 是否为双层皮肤：正方形且宽度为64的倍数 (64x64, 128x128, etc.)
+ */
+fun BitmapFactory.Options.isDualLayerSkin(): Boolean {
+    return outWidth > 0 && outHeight > 0 && outWidth == outHeight && (outWidth % 64 == 0)
+}
+
+/**
+ * 是否为经典单层皮肤：2:1比例且宽度为64的倍数 (64x32, 128x64, etc.)
  */
 fun BitmapFactory.Options.isClassicSkin(): Boolean {
+    return outWidth > 0 && outHeight > 0 && outWidth == (outHeight * 2) && (outWidth % 64 == 0)
+}
+
+/**
+ * 是否为有效的披风：
+ * 1. 标准/经典披风：2:1 比例（64x32, 128x64, 256x128 等）
+ * 2. 正方形披风：1:1 比例（64x64, 128x128 等）
+ */
+fun BitmapFactory.Options.isValidCape(): Boolean {
+    if (outWidth <= 0 || outHeight <= 0) return false
+    if (outWidth == (outHeight * 2) && (outWidth % 64 == 0)) return true
+    if (outWidth == outHeight && (outWidth % 64 == 0)) return true
+    // 同时兼容 64x32 基础尺寸
     return outWidth == 64 && outHeight == 32
 }
 
 /**
- * 检查皮肤是否为纤细（Alex）模型
+ * 检查皮肤是否为纤细（Alex）模型，支持高清HD皮肤坐标等比缩放探测
  */
 suspend fun File.isSlimModel(): Boolean = withContext(Dispatchers.IO) {
     val options = BitmapFactory.Options()
@@ -99,11 +142,12 @@ suspend fun File.isSlimModel(): Boolean = withContext(Dispatchers.IO) {
             //旧版单层皮肤不支持细臂
             false
         } else {
-            val rightHand = bitmap.isTransparent(50..51, 16..19)
-            val rightArm = bitmap.isTransparent(54..55, 20..31)
+            val scale = (options.outWidth / 64).coerceAtLeast(1)
+            val rightHand = bitmap.isTransparent((50 * scale) until (52 * scale), (16 * scale) until (20 * scale))
+            val rightArm = bitmap.isTransparent((54 * scale) until (56 * scale), (20 * scale) until (32 * scale))
 
-            val leftHand = bitmap.isTransparent(42..43, 48..51)
-            val leftArm = bitmap.isTransparent(46..47, 52..63)
+            val leftHand = bitmap.isTransparent((42 * scale) until (44 * scale), (48 * scale) until (52 * scale))
+            val leftArm = bitmap.isTransparent((46 * scale) until (48 * scale), (52 * scale) until (64 * scale))
 
             rightHand && rightArm && leftHand && leftArm
         }

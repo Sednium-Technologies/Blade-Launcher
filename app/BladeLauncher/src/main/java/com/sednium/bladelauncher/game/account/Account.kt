@@ -62,6 +62,9 @@ data class Account(
     val hasSkinFile: Boolean
         get() = getSkinFile().exists()
 
+    val hasCapeFile: Boolean
+        get() = getCapeFile().exists()
+
     fun getSkinFile() = File(PathManager.DIR_ACCOUNT_SKIN, "$uniqueUUID.png")
 
     fun getCapeFile() = File(PathManager.DIR_ACCOUNT_CAPE, "$uniqueUUID.png")

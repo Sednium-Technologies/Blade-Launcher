@@ -1299,9 +1299,13 @@ sealed interface ChangeSkin {
  */
 sealed interface ChangeCape {
     data object None : ChangeCape
-    data class ChangeCapeData(
+    data class MicrosoftCapeData(
         val cape: PlayerProfile.Cape
     ) : ChangeCape
+    data class CustomCapeData(
+        val cacheFile: File
+    ) : ChangeCape
+    data object ResetCape : ChangeCape
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1315,12 +1319,15 @@ fun ChangeSkinDialog(
     capeState: ChangeCape,
     onCapeStateChange: (ChangeCape) -> Unit,
     isImportingSkin: Boolean,
+    isImportingCape: Boolean = false,
     onSkinPicked: (Uri) -> Unit,
     onSkinUrlSubmitted: (String) -> Unit,
+    onCapePicked: (Uri) -> Unit,
+    onCapeUrlSubmitted: (String) -> Unit,
     onDismissRequest: () -> Unit,
     onResetSkin: () -> Unit,
     onApplySkin: (File, SkinModelType) -> Unit,
-    onApplyCape: (PlayerProfile.Cape) -> Unit,
+    onApplyCape: (ChangeCape) -> Unit,
     onFetchCapes: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1332,8 +1339,8 @@ fun ChangeSkinDialog(
         }
     }
 
+    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Skin, 1 = Cape
     var showCapeSelector by remember { mutableStateOf(false) }
-
     var isFetchingCapes by remember { mutableStateOf(false) }
 
     var currentCapeToLoad by remember { mutableStateOf(EmptyCape) }
@@ -1356,6 +1363,11 @@ fun ChangeSkinDialog(
     val skinPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let(onSkinPicked)
+        }
+
+    val capePicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            uri?.let(onCapePicked)
         }
 
     /**
@@ -1420,7 +1432,7 @@ fun ChangeSkinDialog(
                         Box(
                             modifier = Modifier
                                 .width(110.dp)
-                                .height(220.dp)
+                                .height(230.dp)
                                 .clip(MaterialTheme.shapes.large)
                                 .background(itemColor(false)),
                             contentAlignment = Alignment.Center
@@ -1462,8 +1474,41 @@ fun ChangeSkinDialog(
 
                                             is ChangeSkin.ResetSkin -> resetSkin()
                                         }
-                                        if (account.isMicrosoftAccount()) {
-                                            playerSkin.loadCape(currentCapeToLoad)
+
+                                        when (capeState) {
+                                            is ChangeCape.CustomCapeData -> {
+                                                runCatching {
+                                                    capeState.cacheFile.inputStream().use { stream ->
+                                                        playerSkin.loadCape(stream)
+                                                    }
+                                                }.onFailure {
+                                                    playerSkin.loadCape(cape = null)
+                                                }
+                                            }
+
+                                            is ChangeCape.MicrosoftCapeData -> {
+                                                playerSkin.loadCape(capeState.cape)
+                                            }
+
+                                            ChangeCape.ResetCape -> {
+                                                playerSkin.loadCape(cape = null)
+                                            }
+
+                                            ChangeCape.None -> {
+                                                if (account.hasCapeFile) {
+                                                    runCatching {
+                                                        account.getCapeFile().inputStream().use { stream ->
+                                                            playerSkin.loadCape(stream)
+                                                        }
+                                                    }.onFailure {
+                                                        playerSkin.loadCape(cape = null)
+                                                    }
+                                                } else if (account.isMicrosoftAccount()) {
+                                                    playerSkin.loadCape(currentCapeToLoad)
+                                                } else {
+                                                    playerSkin.loadCape(cape = null)
+                                                }
+                                            }
                                         }
                                     }
                                 },
@@ -1474,218 +1519,454 @@ fun ChangeSkinDialog(
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .heightIn(min = 220.dp)
+                                .heightIn(min = 230.dp)
                                 .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            when (skinState) {
-                                ChangeSkin.None, ChangeSkin.ResetSkin -> {
-                                    var skinUrl by rememberSaveable { mutableStateOf("") }
-
-                                    // Method 1: URL Input
+                            // 顶栏 Tab 切换：皮肤 (Skin) 与 披风 (Cape)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                    .padding(3.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(if (selectedTab == 0) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                        .clickable { selectedTab = 0 }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text(
-                                        text = stringResource(R.string.account_change_skin_url_title),
-                                        style = MaterialTheme.typography.labelMedium
+                                        text = stringResource(R.string.account_change_wardrobe_skin_tab),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (selectedTab == 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                                     )
-
-                                    OwnOutlinedTextField(
-                                        value = skinUrl,
-                                        onValueChange = { skinUrl = it },
-                                        placeholder = {
-                                            Text(
-                                                text = stringResource(R.string.account_change_skin_url_hint),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        },
-                                        trailingIcon = {
-                                            if (isImportingSkin) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(20.dp),
-                                                    strokeWidth = 2.dp
-                                                )
-                                            } else {
-                                                IconButton(
-                                                    onClick = {
-                                                        if (skinUrl.isNotBlank()) {
-                                                            onSkinUrlSubmitted(skinUrl)
-                                                        }
-                                                    },
-                                                    enabled = skinUrl.isNotBlank() && !isImportingSkin
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.ic_download_2_filled),
-                                                        contentDescription = stringResource(R.string.account_change_skin_url_download),
-                                                        modifier = Modifier.size(20.dp)
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                        keyboardActions = KeyboardActions(onDone = {
-                                            if (skinUrl.isNotBlank() && !isImportingSkin) {
-                                                onSkinUrlSubmitted(skinUrl)
-                                            }
-                                        }),
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 2.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.account_change_skin_or),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    // Method 2: Storage File Picker
-                                    FilledTonalButton(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = MaterialTheme.shapes.medium,
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
-                                        onClick = {
-                                            skinPicker.launch(arrayOf("image/png"))
-                                        },
-                                        enabled = !isImportingSkin
-                                    ) {
-                                        if (isImportingSkin) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(18.dp),
-                                                strokeWidth = 2.dp
-                                            )
-                                        } else {
-                                            Icon(
-                                                modifier = Modifier.size(18.dp),
-                                                painter = painterResource(R.drawable.ic_upload),
-                                                contentDescription = null
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = stringResource(R.string.account_change_skin_file_title),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            maxLines = 1,
-                                            softWrap = false
-                                        )
-                                    }
                                 }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(MaterialTheme.shapes.small)
+                                        .background(if (selectedTab == 1) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                        .clickable { selectedTab = 1 }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.account_change_wardrobe_cape_tab),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (selectedTab == 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
 
-                                is ChangeSkin.ChangeSkinData -> {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
+                            if (selectedTab == 0) {
+                                // ====== 皮肤设置 (Skin Tab) ======
+                                when (skinState) {
+                                    ChangeSkin.None, ChangeSkin.ResetSkin -> {
+                                        var skinUrl by rememberSaveable { mutableStateOf("") }
+
+                                        // Method 1: URL Input
                                         Text(
-                                            text = stringResource(R.string.account_change_skin_arm_style),
-                                            style = MaterialTheme.typography.bodyMedium
+                                            text = stringResource(R.string.account_change_skin_url_title),
+                                            style = MaterialTheme.typography.labelMedium
                                         )
-                                        Column(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+
+                                        OwnOutlinedTextField(
+                                            value = skinUrl,
+                                            onValueChange = { skinUrl = it },
+                                            placeholder = {
+                                                Text(
+                                                    text = stringResource(R.string.account_change_skin_url_hint),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            },
+                                            trailingIcon = {
+                                                if (isImportingSkin) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(20.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (skinUrl.isNotBlank()) {
+                                                                onSkinUrlSubmitted(skinUrl)
+                                                            }
+                                                        },
+                                                        enabled = skinUrl.isNotBlank() && !isImportingSkin
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.ic_download_2_filled),
+                                                            contentDescription = stringResource(R.string.account_change_skin_url_download),
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                            keyboardActions = KeyboardActions(onDone = {
+                                                if (skinUrl.isNotBlank() && !isImportingSkin) {
+                                                    onSkinUrlSubmitted(skinUrl)
+                                                }
+                                            }),
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 2.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
                                         ) {
-                                            RadioCard(
-                                                selected = skinState.skinModel == SkinModelType.STEVE,
-                                                text = stringResource(R.string.account_change_skin_arm_wide),
-                                                onClick = {
-                                                    onSkinStateChange(
-                                                        skinState.copy(
-                                                            skinModel = SkinModelType.STEVE
-                                                        )
-                                                    )
-                                                }
-                                            )
-                                            RadioCard(
-                                                selected = skinState.skinModel == SkinModelType.ALEX,
-                                                text = stringResource(R.string.account_change_skin_arm_slim),
-                                                onClick = {
-                                                    onSkinStateChange(
-                                                        skinState.copy(
-                                                            skinModel = SkinModelType.ALEX
-                                                        )
-                                                    )
-                                                }
+                                            Text(
+                                                text = stringResource(R.string.account_change_skin_or),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
 
+                                        // Method 2: Storage File Picker
                                         FilledTonalButton(
                                             modifier = Modifier.fillMaxWidth(),
                                             shape = MaterialTheme.shapes.medium,
-                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
                                             onClick = {
-                                                onSkinStateChange(ChangeSkin.None)
-                                            }
+                                                skinPicker.launch(arrayOf("image/png"))
+                                            },
+                                            enabled = !isImportingSkin
                                         ) {
-                                            Icon(
-                                                modifier = Modifier.size(20.dp),
-                                                painter = painterResource(R.drawable.ic_restart_alt),
-                                                contentDescription = null
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                            if (isImportingSkin) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp
+                                                )
+                                            } else {
+                                                Icon(
+                                                    modifier = Modifier.size(18.dp),
+                                                    painter = painterResource(R.drawable.ic_upload),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(6.dp))
                                             Text(
-                                                text = stringResource(R.string.account_change_skin_reselect),
-                                                style = MaterialTheme.typography.labelMedium,
+                                                text = stringResource(R.string.account_change_skin_file_title),
+                                                style = MaterialTheme.typography.labelSmall,
                                                 maxLines = 1,
                                                 softWrap = false
                                             )
                                         }
                                     }
-                                }
-                            }
 
-                            //仅微软账号支持更改披风
-                            if (account.isMicrosoftAccount()) {
-                                InfoLayoutTextItem(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    title = if (isFetchingCapes) {
-                                        stringResource(R.string.account_change_cape_fetch_all)
-                                    } else {
-                                        stringResource(R.string.account_change_cape)
-                                    },
-                                    icon = {
-                                        if (isFetchingCapes) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(22.dp),
-                                                strokeWidth = 2.dp
+                                    is ChangeSkin.ChangeSkinData -> {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.account_change_skin_arm_style),
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
-                                        } else {
+                                            Column(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                RadioCard(
+                                                    selected = skinState.skinModel == SkinModelType.STEVE,
+                                                    text = stringResource(R.string.account_change_skin_arm_wide),
+                                                    onClick = {
+                                                        onSkinStateChange(
+                                                            skinState.copy(
+                                                                skinModel = SkinModelType.STEVE
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                                RadioCard(
+                                                    selected = skinState.skinModel == SkinModelType.ALEX,
+                                                    text = stringResource(R.string.account_change_skin_arm_slim),
+                                                    onClick = {
+                                                        onSkinStateChange(
+                                                            skinState.copy(
+                                                                skinModel = SkinModelType.ALEX
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            }
+
+                                            FilledTonalButton(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = MaterialTheme.shapes.medium,
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                                                onClick = {
+                                                    onSkinStateChange(ChangeSkin.None)
+                                                }
+                                            ) {
+                                                Icon(
+                                                    modifier = Modifier.size(20.dp),
+                                                    painter = painterResource(R.drawable.ic_restart_alt),
+                                                    contentDescription = null
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = stringResource(R.string.account_change_skin_reselect),
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // 离线账号重置皮肤
+                                if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
+                                    InfoLayoutTextItem(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        title = stringResource(R.string.generic_reset),
+                                        icon = {
                                             Icon(
                                                 modifier = Modifier.size(22.dp),
-                                                painter = painterResource(R.drawable.ic_styler),
+                                                painter = painterResource(R.drawable.ic_restart_alt),
                                                 contentDescription = null
                                             )
+                                        },
+                                        onClick = {
+                                            onSkinStateChange(ChangeSkin.ResetSkin)
                                         }
-                                    },
-                                    onClick = {
-                                        showCapeSelector = true
-                                    },
-                                    enabled = !isFetchingCapes
-                                )
-                            }
+                                    )
+                                }
+                            } else {
+                                // ====== 披风设置 (Cape Tab) ======
+                                when (capeState) {
+                                    is ChangeCape.CustomCapeData -> {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.account_change_cape_custom),
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
 
-                            //离线账号重置皮肤
-                            if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
-                                InfoLayoutTextItem(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    title = stringResource(R.string.generic_reset),
-                                    icon = {
-                                        Icon(
-                                            modifier = Modifier.size(22.dp),
-                                            painter = painterResource(R.drawable.ic_restart_alt),
-                                            contentDescription = null
-                                        )
-                                    },
-                                    onClick = {
-                                        onSkinStateChange(ChangeSkin.ResetSkin)
+                                            FilledTonalButton(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = MaterialTheme.shapes.medium,
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                                                onClick = {
+                                                    onCapeStateChange(ChangeCape.None)
+                                                }
+                                            ) {
+                                                Icon(
+                                                    modifier = Modifier.size(20.dp),
+                                                    painter = painterResource(R.drawable.ic_restart_alt),
+                                                    contentDescription = null
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = stringResource(R.string.account_change_cape_reselect),
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
+                                        }
                                     }
-                                )
+
+                                    is ChangeCape.MicrosoftCapeData -> {
+                                        Column(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            val capeName = capeState.cape.capeLocalRes()?.let { context.getString(it) } ?: capeState.cape.alias
+                                            Text(
+                                                text = capeName,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+
+                                            FilledTonalButton(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = MaterialTheme.shapes.medium,
+                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
+                                                onClick = {
+                                                    showCapeSelector = true
+                                                }
+                                            ) {
+                                                Icon(
+                                                    modifier = Modifier.size(20.dp),
+                                                    painter = painterResource(R.drawable.ic_styler),
+                                                    contentDescription = null
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = stringResource(R.string.account_change_cape_reselect),
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    ChangeCape.None, ChangeCape.ResetCape -> {
+                                        var capeUrl by rememberSaveable { mutableStateOf("") }
+
+                                        // Method 1: Cape URL Input
+                                        Text(
+                                            text = stringResource(R.string.account_change_cape_url_title),
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
+
+                                        OwnOutlinedTextField(
+                                            value = capeUrl,
+                                            onValueChange = { capeUrl = it },
+                                            placeholder = {
+                                                Text(
+                                                    text = stringResource(R.string.account_change_cape_url_hint),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            },
+                                            trailingIcon = {
+                                                if (isImportingCape) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(20.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (capeUrl.isNotBlank()) {
+                                                                onCapeUrlSubmitted(capeUrl)
+                                                            }
+                                                        },
+                                                        enabled = capeUrl.isNotBlank() && !isImportingCape
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.ic_download_2_filled),
+                                                            contentDescription = stringResource(R.string.account_change_cape_url_download),
+                                                            modifier = Modifier.size(20.dp)
+                                                        )
+                                                    }
+                                                }
+                                            },
+                                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                            keyboardActions = KeyboardActions(onDone = {
+                                                if (capeUrl.isNotBlank() && !isImportingCape) {
+                                                    onCapeUrlSubmitted(capeUrl)
+                                                }
+                                            }),
+                                            singleLine = true,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 2.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.account_change_skin_or),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        // Method 2: Storage Cape File Picker
+                                        FilledTonalButton(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.medium,
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+                                            onClick = {
+                                                capePicker.launch(arrayOf("image/png"))
+                                            },
+                                            enabled = !isImportingCape
+                                        ) {
+                                            if (isImportingCape) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp
+                                                )
+                                            } else {
+                                                Icon(
+                                                    modifier = Modifier.size(18.dp),
+                                                    painter = painterResource(R.drawable.ic_upload),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = stringResource(R.string.account_change_cape_file_title),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                maxLines = 1,
+                                                softWrap = false
+                                            )
+                                        }
+
+                                        // 微软账号可额外选择官方披风
+                                        if (account.isMicrosoftAccount()) {
+                                            InfoLayoutTextItem(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                title = if (isFetchingCapes) {
+                                                    stringResource(R.string.account_change_cape_fetch_all)
+                                                } else {
+                                                    stringResource(R.string.account_change_cape_select_cape)
+                                                },
+                                                icon = {
+                                                    if (isFetchingCapes) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(22.dp),
+                                                            strokeWidth = 2.dp
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            modifier = Modifier.size(22.dp),
+                                                            painter = painterResource(R.drawable.ic_styler),
+                                                            contentDescription = null
+                                                        )
+                                                    }
+                                                },
+                                                onClick = {
+                                                    showCapeSelector = true
+                                                },
+                                                enabled = !isFetchingCapes
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // 重置披风选项
+                                val canResetCape = (account.hasCapeFile || (account.isMicrosoftAccount() && currentUsingCape != EmptyCape)) && capeState != ChangeCape.ResetCape
+                                if (canResetCape) {
+                                    InfoLayoutTextItem(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        title = stringResource(R.string.generic_reset),
+                                        icon = {
+                                            Icon(
+                                                modifier = Modifier.size(22.dp),
+                                                painter = painterResource(R.drawable.ic_restart_alt),
+                                                contentDescription = null
+                                            )
+                                        },
+                                        onClick = {
+                                            onCapeStateChange(ChangeCape.ResetCape)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -1721,8 +2002,14 @@ fun ChangeSkinDialog(
                                     ChangeSkin.None -> {}
                                 }
 
-                                if (capeState is ChangeCape.ChangeCapeData) {
-                                    onApplyCape(capeState.cape)
+                                when (capeState) {
+                                    is ChangeCape.MicrosoftCapeData,
+                                    is ChangeCape.CustomCapeData,
+                                    ChangeCape.ResetCape -> {
+                                        onApplyCape(capeState)
+                                    }
+
+                                    ChangeCape.None -> {}
                                 }
 
                                 onDismissRequest()
@@ -1742,7 +2029,7 @@ fun ChangeSkinDialog(
 
     if (showCapeSelector) {
         //若当前未更改披风，则使用使用中的披风
-        val cape = if (capeState is ChangeCape.ChangeCapeData) {
+        val cape = if (capeState is ChangeCape.MicrosoftCapeData) {
             capeState.cape
         } else {
             currentUsingCape
@@ -1754,15 +2041,15 @@ fun ChangeSkinDialog(
                 addAll(availableCapes)
             },
             selectedCape = cape,
-            onSelected = { cape, _ ->
+            onSelected = { selectedCape, _ ->
                 //检查是否已经为正在使用的披风
-                val state = if (cape != currentUsingCape) {
-                    ChangeCape.ChangeCapeData(cape)
+                val state = if (selectedCape != currentUsingCape) {
+                    if (selectedCape == EmptyCape) ChangeCape.ResetCape else ChangeCape.MicrosoftCapeData(selectedCape)
                 } else {
                     ChangeCape.None
                 }
                 onCapeStateChange(state)
-                currentCapeToLoad = cape
+                currentCapeToLoad = selectedCape
                 showCapeSelector = false
             },
             onDismiss = {

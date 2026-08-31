@@ -46,8 +46,10 @@ import com.sednium.bladelauncher.game.account.refreshMicrosoft
 import com.sednium.bladelauncher.game.account.wardrobe.EmptyCape
 import com.sednium.bladelauncher.game.account.wardrobe.SkinModelType
 import com.sednium.bladelauncher.game.account.wardrobe.capeLocalRes
+import com.sednium.bladelauncher.game.account.wardrobe.getImageDimensions
 import com.sednium.bladelauncher.game.account.wardrobe.getLocalUUIDWithSkinModel
 import com.sednium.bladelauncher.game.account.wardrobe.isSlimModel
+import com.sednium.bladelauncher.game.account.wardrobe.validateCapeFile
 import com.sednium.bladelauncher.game.account.wardrobe.validateSkinFile
 import com.sednium.bladelauncher.game.account.yggdrasil.PlayerProfile
 import com.sednium.bladelauncher.game.account.yggdrasil.cacheAllCapes
@@ -119,6 +121,8 @@ sealed interface AccountManageIntent {
         AccountManageIntent
     data class OnSkinPicked(val uri: Uri) : AccountManageIntent
     data class OnSkinUrlSubmitted(val url: String) : AccountManageIntent
+    data class OnCapePicked(val uri: Uri) : AccountManageIntent
+    data class OnCapeUrlSubmitted(val url: String) : AccountManageIntent
     data object ResetAccountSkinDialogState : AccountManageIntent
 
 
@@ -148,6 +152,17 @@ sealed interface AccountManageIntent {
     data class ApplyMicrosoftCape(
         val account: Account,
         val cape: PlayerProfile.Cape
+    ) : AccountManageIntent
+
+    /** 应用自定义披风文件 */
+    data class ApplyCustomCape(
+        val account: Account,
+        val file: File
+    ) : AccountManageIntent
+
+    /** 重置披风 */
+    data class ResetCape(
+        val account: Account
     ) : AccountManageIntent
 
     /** 创建新的离线账号 */
@@ -285,11 +300,13 @@ class AccountManageViewModel @Inject constructor(
      * @param pendingSkinData 将要更改的皮肤
      * @param pendingCapeData 将要更改的披风
      * @param importingSkin 是否正在导入皮肤文件，不交给onIntent处理
+     * @param importingCape 是否正在导入披风文件，不交给onIntent处理
      */
     data class AccountSkinDialogState(
         val pendingSkinData: ChangeSkin = ChangeSkin.None,
         val pendingCapeData: ChangeCape = ChangeCape.None,
-        val importingSkin: Boolean = false
+        val importingSkin: Boolean = false,
+        val importingCape: Boolean = false
     )
 
     /**
@@ -352,6 +369,8 @@ class AccountManageViewModel @Inject constructor(
 
             is AccountManageIntent.OnSkinPicked -> onSkinPicked(intent)
             is AccountManageIntent.OnSkinUrlSubmitted -> onSkinUrlSubmitted(intent)
+            is AccountManageIntent.OnCapePicked -> onCapePicked(intent)
+            is AccountManageIntent.OnCapeUrlSubmitted -> onCapeUrlSubmitted(intent)
             is AccountManageIntent.ResetAccountSkinDialogState -> {
                 _accountSkinDialogState.update { AccountSkinDialogState() }
             }
@@ -363,6 +382,8 @@ class AccountManageViewModel @Inject constructor(
             is AccountManageIntent.UploadMicrosoftSkin -> uploadMicrosoftSkin(intent)
             is AccountManageIntent.FetchMicrosoftCapes -> fetchMicrosoftCapes(intent.account)
             is AccountManageIntent.ApplyMicrosoftCape -> applyMicrosoftCape(intent)
+            is AccountManageIntent.ApplyCustomCape -> applyCustomCape(intent.account, intent.file)
+            is AccountManageIntent.ResetCape -> resetCape(intent.account)
             is AccountManageIntent.CreateLocalAccount -> createLocalAccount(
                 intent.userName,
                 intent.userUUID
@@ -375,6 +396,21 @@ class AccountManageViewModel @Inject constructor(
             is AccountManageIntent.RefreshAccount -> refreshAccount(intent.account)
             is AccountManageIntent.ResetSkin -> resetSkin(intent.account)
         }
+    }
+
+    /** 检查是否为网页响应而非直接图片 */
+    private fun isWebpageResponse(contentType: String?, file: File): Boolean {
+        if (contentType?.contains("text/html", ignoreCase = true) == true ||
+            contentType?.contains("application/xhtml", ignoreCase = true) == true) {
+            return true
+        }
+        return runCatching {
+            if (!file.exists() || file.length() == 0L) return@runCatching false
+            val buffer = ByteArray(256)
+            file.inputStream().use { it.read(buffer) }
+            val prefix = String(buffer, Charsets.UTF_8).trimStart().lowercase()
+            prefix.startsWith("<!doctype html") || prefix.startsWith("<html") || prefix.startsWith("<?xml")
+        }.getOrDefault(false)
     }
 
     /**
@@ -396,9 +432,11 @@ class AccountManageViewModel @Inject constructor(
                 validateSkinFile(cacheFile)
             }.onSuccess { isValid ->
                 if (!isValid) {
+                    val (w, h) = getImageDimensions(cacheFile)
+                    FileUtils.deleteQuietly(cacheFile)
                     emitError(
                         context.getString(R.string.generic_warning),
-                        context.getString(R.string.account_change_skin_invalid)
+                        context.getString(R.string.account_change_skin_invalid, w, h)
                     )
                     return@onSuccess
                 }
@@ -417,6 +455,7 @@ class AccountManageViewModel @Inject constructor(
                     )
                 }
             }.onFailure { th ->
+                FileUtils.deleteQuietly(cacheFile)
                 emitError(
                     context.getString(R.string.generic_error),
                     context.getString(R.string.account_change_skin_failed_to_import) + "\r\n" + th.getMessageOrToString()
@@ -453,17 +492,21 @@ class AccountManageViewModel @Inject constructor(
                 "skin_pick_${UUID.randomUUID()}"
             )
 
+            var contentTypeHeader: String? = null
+
             runCatching {
                 cacheFile.parentFile?.let {
                     if (!it.exists()) it.mkdirs()
                 }
                 val request = Request.Builder()
                     .url(targetUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Android; Mobile)")
                     .build()
                 okHttpClient.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
                         throw RuntimeException("HTTP ${response.code}: ${response.message}")
                     }
+                    contentTypeHeader = response.header("Content-Type")
                     val body = response.body ?: throw RuntimeException("Empty response body")
                     body.byteStream().use { inputStream ->
                         FileOutputStream(cacheFile).use { outputStream ->
@@ -475,12 +518,24 @@ class AccountManageViewModel @Inject constructor(
                         }
                     }
                 }
+
+                if (isWebpageResponse(contentTypeHeader, cacheFile)) {
+                    FileUtils.deleteQuietly(cacheFile)
+                    emitError(
+                        context.getString(R.string.generic_warning),
+                        context.getString(R.string.account_change_skin_url_webpage_error)
+                    )
+                    return@launch
+                }
+
                 validateSkinFile(cacheFile)
             }.onSuccess { isValid ->
                 if (!isValid) {
+                    val (w, h) = getImageDimensions(cacheFile)
+                    FileUtils.deleteQuietly(cacheFile)
                     emitError(
                         context.getString(R.string.generic_warning),
-                        context.getString(R.string.account_change_skin_invalid)
+                        context.getString(R.string.account_change_skin_invalid, w, h)
                     )
                     return@onSuccess
                 }
@@ -499,6 +554,7 @@ class AccountManageViewModel @Inject constructor(
                     )
                 }
             }.onFailure { th ->
+                FileUtils.deleteQuietly(cacheFile)
                 emitError(
                     context.getString(R.string.generic_error),
                     context.getString(R.string.account_change_skin_download_failed) + "\r\n" + th.getMessageOrToString()
@@ -507,6 +563,148 @@ class AccountManageViewModel @Inject constructor(
 
             _accountSkinDialogState.update {
                 it.copy(importingSkin = false)
+            }
+        }
+    }
+
+    /**
+     * 选中披风后，在 VM 层做文件合法性校验
+     */
+    private fun onCapePicked(intent: AccountManageIntent.OnCapePicked) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _accountSkinDialogState.update {
+                it.copy(importingCape = true)
+            }
+
+            val cacheFile = File(
+                PathManager.DIR_IMAGE_CACHE,
+                "cape_pick_${UUID.randomUUID()}"
+            )
+
+            runCatching {
+                context.copyLocalFile(intent.uri, cacheFile)
+                validateCapeFile(cacheFile)
+            }.onSuccess { isValid ->
+                if (!isValid) {
+                    val (w, h) = getImageDimensions(cacheFile)
+                    FileUtils.deleteQuietly(cacheFile)
+                    emitError(
+                        context.getString(R.string.generic_warning),
+                        context.getString(R.string.account_change_cape_invalid, w, h)
+                    )
+                    return@onSuccess
+                }
+
+                _accountSkinDialogState.update {
+                    it.copy(
+                        pendingCapeData = ChangeCape.CustomCapeData(
+                            cacheFile = cacheFile
+                        )
+                    )
+                }
+            }.onFailure { th ->
+                FileUtils.deleteQuietly(cacheFile)
+                emitError(
+                    context.getString(R.string.generic_error),
+                    context.getString(R.string.account_change_skin_failed_to_import) + "\r\n" + th.getMessageOrToString()
+                )
+            }
+
+            _accountSkinDialogState.update {
+                it.copy(importingCape = false)
+            }
+        }
+    }
+
+    /**
+     * 从网络直链下载披风图片文件并校验
+     */
+    private fun onCapeUrlSubmitted(intent: AccountManageIntent.OnCapeUrlSubmitted) {
+        val trimmedUrl = intent.url.trim()
+        if (trimmedUrl.isEmpty()) {
+            return
+        }
+        val targetUrl = if (!trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://")) {
+            "https://$trimmedUrl"
+        } else {
+            trimmedUrl
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _accountSkinDialogState.update {
+                it.copy(importingCape = true)
+            }
+
+            val cacheFile = File(
+                PathManager.DIR_IMAGE_CACHE,
+                "cape_pick_${UUID.randomUUID()}"
+            )
+
+            var contentTypeHeader: String? = null
+
+            runCatching {
+                cacheFile.parentFile?.let {
+                    if (!it.exists()) it.mkdirs()
+                }
+                val request = Request.Builder()
+                    .url(targetUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Android; Mobile)")
+                    .build()
+                okHttpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        throw RuntimeException("HTTP ${response.code}: ${response.message}")
+                    }
+                    contentTypeHeader = response.header("Content-Type")
+                    val body = response.body ?: throw RuntimeException("Empty response body")
+                    body.byteStream().use { inputStream ->
+                        FileOutputStream(cacheFile).use { outputStream ->
+                            val buffer = ByteArray(4096)
+                            var bytesRead: Int
+                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                outputStream.write(buffer, 0, bytesRead)
+                            }
+                        }
+                    }
+                }
+
+                if (isWebpageResponse(contentTypeHeader, cacheFile)) {
+                    FileUtils.deleteQuietly(cacheFile)
+                    emitError(
+                        context.getString(R.string.generic_warning),
+                        context.getString(R.string.account_change_skin_url_webpage_error)
+                    )
+                    return@launch
+                }
+
+                validateCapeFile(cacheFile)
+            }.onSuccess { isValid ->
+                if (!isValid) {
+                    val (w, h) = getImageDimensions(cacheFile)
+                    FileUtils.deleteQuietly(cacheFile)
+                    emitError(
+                        context.getString(R.string.generic_warning),
+                        context.getString(R.string.account_change_cape_invalid, w, h)
+                    )
+                    return@onSuccess
+                }
+
+                _accountSkinDialogState.update {
+                    it.copy(
+                        pendingCapeData = ChangeCape.CustomCapeData(
+                            cacheFile = cacheFile
+                        )
+                    )
+                }
+            }.onFailure { th ->
+                FileUtils.deleteQuietly(cacheFile)
+                emitError(
+                    context.getString(R.string.generic_error),
+                    context.getString(R.string.account_change_cape_download_failed) + "\r\n" + th.getMessageOrToString()
+                )
+            }
+
+            _accountSkinDialogState.update {
+                it.copy(importingCape = false)
             }
         }
     }
@@ -833,6 +1031,67 @@ class AccountManageViewModel @Inject constructor(
                 FileUtils.deleteQuietly(getSkinFile())
                 skinModelType = SkinModelType.NONE
                 profileId = getLocalUUIDWithSkinModel(username, skinModelType)
+                AccountsManager.suspendSaveAccount(this)
+                AccountsManager.refreshWardrobe()
+            }
+        }))
+        onIntent(
+            AccountManageIntent.UpdateAccountSkinOp(
+                AccountSkinOperation.None
+            )
+        )
+    }
+
+    /** 应用自定义披风文件 */
+    private fun applyCustomCape(account: Account, file: File) {
+        saveLocalCape(account, file)
+    }
+
+    /** 保存披风到本地存储 */
+    private fun saveLocalCape(account: Account, file: File) {
+        val capeFile = account.getCapeFile()
+
+        TaskSystem.submitTask(Task.runTask(dispatcher = Dispatchers.IO, task = {
+            if (validateCapeFile(file)) {
+                file.copyTo(capeFile, true)
+                FileUtils.deleteQuietly(file)
+                AccountsManager.suspendSaveAccount(account)
+                AccountsManager.refreshWardrobe()
+                onIntent(
+                    AccountManageIntent.UpdateAccountSkinOp(
+                        AccountSkinOperation.None
+                    )
+                )
+            } else {
+                val (w, h) = getImageDimensions(file)
+                FileUtils.deleteQuietly(file)
+                emitError(
+                    context.getString(R.string.generic_warning),
+                    context.getString(R.string.account_change_cape_invalid, w, h)
+                )
+                onIntent(
+                    AccountManageIntent.UpdateAccountSkinOp(
+                        AccountSkinOperation.None
+                    )
+                )
+            }
+        }, onError = { th ->
+            FileUtils.deleteQuietly(file)
+            emitError(context.getString(R.string.error_import_image), th.getMessageOrToString())
+            AccountsManager.refreshWardrobe()
+            onIntent(
+                AccountManageIntent.UpdateAccountSkinOp(
+                    AccountSkinOperation.None
+                )
+            )
+        }))
+    }
+
+    /** 重置披风数据 */
+    private fun resetCape(account: Account) {
+        TaskSystem.submitTask(Task.runTask(dispatcher = Dispatchers.IO, task = {
+            account.apply {
+                FileUtils.deleteQuietly(getCapeFile())
                 AccountsManager.suspendSaveAccount(this)
                 AccountsManager.refreshWardrobe()
             }

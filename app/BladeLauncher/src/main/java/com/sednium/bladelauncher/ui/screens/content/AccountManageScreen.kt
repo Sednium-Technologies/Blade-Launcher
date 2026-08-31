@@ -76,7 +76,9 @@ import com.sednium.bladelauncher.game.account.Account
 import com.sednium.bladelauncher.game.account.AccountsManager
 import com.sednium.bladelauncher.game.account.auth_server.data.AuthServer
 import com.sednium.bladelauncher.game.account.isAuthServerAccount
+import com.sednium.bladelauncher.game.account.isMicrosoftAccount
 import com.sednium.bladelauncher.game.account.isMicrosoftLogging
+import com.sednium.bladelauncher.game.account.wardrobe.EmptyCape
 import com.sednium.bladelauncher.game.account.yggdrasil.PlayerProfile
 import com.sednium.bladelauncher.ui.base.BaseScreen
 import com.sednium.bladelauncher.ui.components.BackgroundCard
@@ -92,6 +94,7 @@ import com.sednium.bladelauncher.ui.screens.NormalNavKey
 import com.sednium.bladelauncher.ui.screens.content.elements.AccountItem
 import com.sednium.bladelauncher.ui.screens.content.elements.AccountOperation
 import com.sednium.bladelauncher.ui.screens.content.elements.AccountSkinOperation
+import com.sednium.bladelauncher.ui.screens.content.elements.ChangeCape
 import com.sednium.bladelauncher.ui.screens.content.elements.ChangeSkinDialog
 import com.sednium.bladelauncher.ui.screens.content.elements.LocalLoginDialog
 import com.sednium.bladelauncher.ui.screens.content.elements.LocalLoginOperation
@@ -832,6 +835,7 @@ private fun AccountSkinOperation(
                     )
                 },
                 isImportingSkin = skinDialogState.importingSkin,
+                isImportingCape = skinDialogState.importingCape,
                 onSkinPicked = { uri ->
                     actions.onIntent(
                         AccountManageIntent.OnSkinPicked(uri)
@@ -840,6 +844,16 @@ private fun AccountSkinOperation(
                 onSkinUrlSubmitted = { url ->
                     actions.onIntent(
                         AccountManageIntent.OnSkinUrlSubmitted(url)
+                    )
+                },
+                onCapePicked = { uri ->
+                    actions.onIntent(
+                        AccountManageIntent.OnCapePicked(uri)
+                    )
+                },
+                onCapeUrlSubmitted = { url ->
+                    actions.onIntent(
+                        AccountManageIntent.OnCapeUrlSubmitted(url)
                     )
                 },
                 onDismissRequest = {
@@ -855,8 +869,23 @@ private fun AccountSkinOperation(
                 onApplySkin = { file, model ->
                     actions.onIntent(AccountManageIntent.ApplySkin(account, file, model))
                 },
-                onApplyCape = { cape ->
-                    actions.onIntent(AccountManageIntent.ApplyMicrosoftCape(account, cape))
+                onApplyCape = { capeState ->
+                    when (capeState) {
+                        is ChangeCape.MicrosoftCapeData -> {
+                            actions.onIntent(AccountManageIntent.ApplyMicrosoftCape(account, capeState.cape))
+                        }
+                        is ChangeCape.CustomCapeData -> {
+                            actions.onIntent(AccountManageIntent.ApplyCustomCape(account, capeState.cacheFile))
+                        }
+                        is ChangeCape.ResetCape -> {
+                            if (account.isMicrosoftAccount()) {
+                                actions.onIntent(AccountManageIntent.ApplyMicrosoftCape(account, EmptyCape))
+                            } else {
+                                actions.onIntent(AccountManageIntent.ResetCape(account))
+                            }
+                        }
+                        ChangeCape.None -> {}
+                    }
                 }
             )
         }
