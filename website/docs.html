@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Docs — Blade Launcher</title>
-<meta name="description" content="Technical guide and documentation for Blade Launcher Android Java edition launcher.">
+<title>Documentation — Blade Launcher Technical Guide &amp; Architecture</title>
+<meta name="description" content="Technical documentation for Blade Launcher: OpenJDK 8–26 runtime setup, GL4ES and Vulkan Zink GPU renderers, dual account authentication, and modpack management on Android.">
+<meta name="keywords" content="Blade Launcher documentation, Minecraft Java Android guide, install Forge Android, install Fabric Android, OpenJDK 21 Android setup, Vulkan Zink Minecraft Android">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sednium-technologies.github.io/Blade-Launcher/docs.html">
+<link rel="icon" type="image/webp" href="img/icon.webp">
+<link rel="apple-touch-icon" href="img/icon.webp">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Blade Launcher">
+<meta property="og:url" content="https://sednium-technologies.github.io/Blade-Launcher/docs.html">
+<meta property="og:title" content="Blade Launcher Documentation &amp; Technical Guide">
+<meta property="og:description" content="Guide to Java runtimes, GPU rendering backends, and modpack management in Blade Launcher.">
+<meta property="og:image" content="https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_main.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blade Launcher Documentation">
+<meta name="twitter:description" content="Technical guide for Blade Launcher on Android.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_main.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -66,17 +81,17 @@
   <main class="docs-content">
 
     <section id="runtimes" class="doc-block">
-      <h2>Java runtimes (8 through 25)</h2>
-      <p>Under <strong>Settings → Java</strong>, Blade Launcher provides on-demand management for Java runtimes: <span class="mono">8</span>, <span class="mono">11</span>, <span class="mono">17</span>, <span class="mono">21</span>, and <span class="mono">25</span>. None of them bloat the initial APK install — each JRE is downloaded on demand into an isolated directory for that version.</p>
+      <h2>Java Runtimes (8 through 26)</h2>
+      <p>Under <strong>Settings → Java</strong>, Blade Launcher provides on-demand management for Java runtimes: <span class="mono">8</span>, <span class="mono">11</span>, <span class="mono">17</span>, <span class="mono">21</span>, and <span class="mono">26</span>. To keep the APK compact, each OpenJDK runtime is downloaded on demand into an isolated sandbox directory per instance.</p>
       
       <div class="doc-table">
         <div class="dt-row dt-head"><span>Minecraft Version</span><span>Recommended Runtime</span></div>
         <div class="dt-row"><span>1.16.5 and earlier</span><span class="mono">Java 8 / Java 11</span></div>
         <div class="dt-row"><span>1.17 – 1.20.4</span><span class="mono">Java 17</span></div>
         <div class="dt-row"><span>1.20.5 – 1.21.4</span><span class="mono">Java 21</span></div>
-        <div class="dt-row"><span>26.1 and later</span><span class="mono">Java 25</span></div>
+        <div class="dt-row"><span>Modern builds &amp; 26.2+</span><span class="mono">Java 21 / Java 25 / Java 26</span></div>
       </div>
-      <p>Custom JVM launch arguments (e.g. <span class="mono">-Xms</span>, <span class="mono">-Xmx</span>, garbage collector parameters) can be configured per-instance.</p>
+      <p>Custom JVM launch arguments (such as <span class="mono">-Xms</span>, <span class="mono">-Xmx</span>, and garbage collector parameters) can be configured per-instance.</p>
     </section>
 
     <section id="renderer" class="doc-block">

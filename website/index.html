@@ -3,126 +3,270 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blade Launcher — Next-Gen Minecraft Java Launcher for Android</title>
-<meta name="description" content="Experience Minecraft Java Edition on Android with portrait mobile UX, isolated Java 8-25 runtimes, custom 3D skins/capes, and intelligent GPU renderer suggestions.">
+<title>Blade Launcher — Android Launcher for Minecraft: Java Edition | OpenJDK 8–26</title>
+
+<!-- Primary Meta Tags -->
+<meta name="description" content="Download Blade Launcher APK v2.4.7 for Android. Play Minecraft: Java Edition (1.7.2 to 1.21+) with Fabric, Forge, NeoForge, OpenJDK 8–26 runtimes, Vulkan Zink, and custom touch controls. Free and open source under GPLv3.">
+<meta name="keywords" content="Minecraft Java Android launcher, Blade Launcher APK, download Minecraft Java Android, play Minecraft Java on phone, PojavLauncher alternative, ZalithLauncher Android, Minecraft Fabric Android, Minecraft Forge Android, OpenJDK 21 Android Minecraft, OpenJDK 26 Android, Vulkan Zink Android, GL4ES Android, mobile Java launcher, Sednium Blade Launcher">
+<meta name="author" content="Sednium Technologies">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://sednium-technologies.github.io/Blade-Launcher/">
+<meta name="theme-color" content="#0C0A09">
+<meta name="application-name" content="Blade Launcher">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Blade Launcher">
+
+<!-- Favicon & Touch Icons -->
+<link rel="icon" type="image/webp" href="img/icon.webp">
+<link rel="apple-touch-icon" href="img/icon.webp">
+
+<!-- Open Graph / Facebook / Discord -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Blade Launcher">
+<meta property="og:url" content="https://sednium-technologies.github.io/Blade-Launcher/">
+<meta property="og:title" content="Blade Launcher — Minecraft: Java Edition Launcher for Android">
+<meta property="og:description" content="Play Minecraft Java Edition on Android. Supports 1.7.2 through 1.21+, Fabric, Forge, NeoForge, OpenJDK 8–26 runtimes, Vulkan Zink rendering, and portrait touch controls. 100% free and open source.">
+<meta property="og:image" content="https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_main.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="720">
+<meta property="og:image:height" content="1600">
+<meta property="og:image:alt" content="Blade Launcher Android Home Screen showing Minecraft Java Edition launcher UI">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blade Launcher — Minecraft: Java Edition Launcher for Android">
+<meta name="twitter:description" content="Download Blade Launcher APK v2.4.7 for Android. Run Minecraft Java Edition with Fabric, Forge, OpenJDK 8–26, and Vulkan Zink.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_main.png">
+<meta name="twitter:image:alt" content="Blade Launcher Android Home Screen">
+
+<!-- Structured Data: SoftwareApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Blade Launcher",
+  "operatingSystem": "Android 8.0 and up",
+  "applicationCategory": "GameApplication",
+  "applicationSubCategory": "UtilitiesApplication",
+  "softwareVersion": "2.4.7",
+  "fileSize": "292 MB",
+  "fileFormat": "application/vnd.android.package-archive",
+  "downloadUrl": "https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v2.4.7/BladeLauncher-2.4.7.apk",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "Sednium Technologies",
+    "url": "https://github.com/Sednium-Technologies"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Sednium Technologies",
+    "url": "https://github.com/Sednium-Technologies"
+  },
+  "license": "https://www.gnu.org/licenses/gpl-3.0.en.html",
+  "description": "Open-source Android launcher for Minecraft: Java Edition. Supports versions 1.7.2 to 1.21+, Fabric, Forge, NeoForge, isolated OpenJDK 8 to 26 runtimes, Vulkan Zink rendering, and portrait mobile touch controls.",
+  "screenshot": [
+    "https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_main.png",
+    "https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_modpack.png",
+    "https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_skin_3d.png",
+    "https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_menu.png",
+    "https://raw.githubusercontent.com/Sednium-Technologies/Blade-Launcher/main/website/img/screen_about.png"
+  ]
+}
+</script>
+
+<!-- Structured Data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can I play on multiplayer Minecraft Java servers with Blade Launcher?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. You can join online Java Edition servers, LAN worlds, and Realms by signing in with an official Microsoft account that owns Minecraft Java Edition. For local LAN games and offline-mode servers, you can also use local offline nickname profiles."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Minecraft versions and mod loaders are supported?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Blade Launcher supports all Minecraft Java versions from 1.7.2 up to the latest 1.21.4 (and modern 26.2+ snapshots). Built-in mod loader support includes Fabric, Forge, NeoForge, and Quilt with automated dependency resolution."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do isolated Java runtimes work (OpenJDK 8 through 26)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Minecraft 1.12 and 1.16 require Java 8 or 11, 1.17 through 1.20.4 require Java 17, and 1.20.5+ requires Java 21. Blade Launcher downloads verified OpenJDK binaries on demand into isolated sandboxes per game version, preventing version conflicts without bloating the base APK."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I import custom skins and animated capes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can import skin PNG files from device storage or paste direct texture URLs, including official Mojang CDN URLs. The launcher supports standard 64x32 and 64x64 skins, as well as 128x128 HD textures with Steve (wide) and Alex (slim) 3D arm preview before applying."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which GPU renderer should I select (GL4ES, Vulkan Zink, VirGL)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GL4ES 1.1.6 is the default translator and provides maximum stability on Qualcomm Adreno and ARM Mali GPUs. Vulkan Zink renders OpenGL directly over Vulkan 1.2 drivers for modern hardware and is required for Minecraft 26.2+. VirGL is available for specialized virtualized GPU environments. The launcher inspects your GPU on startup and suggests the best driver."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is Blade Launcher distributed on GitHub instead of the Google Play Store?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Running Minecraft Java Edition on Android requires downloading and executing external OpenJDK binary runtimes and game bytecode (.jar and .so files). Google Play policies strictly prohibit apps from executing downloaded code outside the APK (Dynamic Code Execution policy). In addition, Mojang third-party guidelines restrict launchers on commercial app stores. GitHub Releases is the official, uncompromised distribution channel."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Structured Data: Breadcrumbs -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://sednium-technologies.github.io/Blade-Launcher/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Documentation",
+      "item": "https://sednium-technologies.github.io/Blade-Launcher/docs.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Changelog",
+      "item": "https://sednium-technologies.github.io/Blade-Launcher/changelog.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "Download APK",
+      "item": "https://github.com/Sednium-Technologies/Blade-Launcher/releases/tag/v2.4.7"
+    }
+  ]
+}
+</script>
+
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<nav class="site-nav">
+<header>
+<nav class="site-nav" aria-label="Main Navigation">
   <div class="wrap">
-    <a href="index.html" class="brand">
-      <span class="logo-icon"></span>
+    <a href="index.html" class="brand" aria-label="Blade Launcher Home">
+      <img src="img/icon.webp" alt="Blade Launcher Logo" class="logo-icon" width="28" height="28">
       Blade Launcher
     </a>
     
     <div class="nav-links" id="navLinks">
       <a href="index.html" class="active">Home</a>
+      <a href="#screenshots">Screenshots</a>
+      <a href="#features">Features</a>
+      <a href="#matcher">Runtime Matcher</a>
+      <a href="#specs">Requirements</a>
+      <a href="#faq">FAQ</a>
       <a href="docs.html">Docs</a>
       <a href="changelog.html">Changelog</a>
-      <a href="#matcher">Runtime Matcher</a>
-      <a href="#compare">Compare</a>
-      <a href="#download" class="nav-cta">Get the app</a>
+      <a href="#download" class="nav-cta">Download APK</a>
     </div>
 
     <div class="nav-actions">
-      <a href="https://github.com/Sednium-Technologies/Blade-Launcher" class="github-badge" target="_blank" rel="noopener noreferrer">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      <a href="https://github.com/Sednium-Technologies/Blade-Launcher" class="github-badge" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         <span>GitHub</span>
         <span class="github-stars">v2.4.7</span>
       </a>
 
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light theme">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
 
-      <button class="btn-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <button class="btn-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
     </div>
   </div>
 </nav>
+</header>
 
-<section class="hero">
+<main>
+<!-- Hero Section -->
+<section class="hero" aria-label="Introduction">
   <div class="hero-ambient-glow"></div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <div class="eyebrow">
         <span class="eyebrow-dot"></span>
-        Next-Generation Mobile Java Launcher
+        Open Source Android Launcher
       </div>
       <h1 class="hero-title">
-        Sharp, fast <span class="highlight">mobile</span> Minecraft.
+        Minecraft: Java Edition on <span class="highlight">Android</span>.
       </h1>
       <p class="hero-sub">
-        A refined, portrait-first Minecraft Java Edition launcher for Android. Engineered with isolated Java 8–25 runtimes, dual-mode accounts, custom skins &amp; capes, and GPU renderer recommendation.
+        Play Minecraft Java Edition (1.7.2 through 1.21+) on phones and tablets. Compatible with Fabric, Forge, NeoForge, and Quilt. Features a portrait-first interface, on-demand OpenJDK 8 through 26 runtimes, Vulkan Zink &amp; GL4ES graphics drivers, and customizable on-screen touch controls.
       </p>
       
       <div class="hero-actions">
         <a href="#download" class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Download APK
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download APK (v2.4.7)
         </a>
         <a href="docs.html" class="btn btn-secondary">Documentation</a>
       </div>
 
       <div class="hero-pills">
         <div class="hero-pill-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
           <span>GPLv3 Open Source</span>
         </div>
         <div class="hero-pill-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
           <span>Android 8.0 to 15+</span>
         </div>
         <div class="hero-pill-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>No Ads or Trackers</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Zero Ads or Trackers</span>
         </div>
       </div>
     </div>
 
     <div class="hero-device">
-      <div class="device">
-        <div class="device-notch"></div>
-        <div class="device-screen">
-          <div>
-            <div class="d-header">
-              <span class="d-title">Blade Launcher</span>
-              <span class="d-fps">60 FPS • Vulkan</span>
-            </div>
-            
-            <div class="d-account-card">
-              <div class="d-avatar-box">🗡️</div>
-              <div class="d-account-meta">
-                <span class="d-account-name">MasterBoyAnkush</span>
-                <span class="d-account-type">Offline / Local Account</span>
-              </div>
-            </div>
-
-            <div class="d-info-rows">
-              <div class="d-info-row">
-                <span>Game Version</span>
-                <span class="d-badge">1.21.4 (Fabric)</span>
-              </div>
-              <div class="d-info-row">
-                <span>Isolated Runtime</span>
-                <span class="d-badge">Java 21 JRE</span>
-              </div>
-              <div class="d-info-row">
-                <span>Active Renderer</span>
-                <span class="d-badge">GL4ES 1.1.6</span>
-              </div>
-              <div class="d-info-row">
-                <span>Mods Installed</span>
-                <span class="d-badge">Sodium + Iris</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-launch-btn">
-            ⚡ LAUNCH MINECRAFT
+      <div class="device-phone">
+        <div class="device-phone-notch"></div>
+        <div class="device-phone-screen">
+          <img src="img/screen_main.png" alt="Blade Launcher on-device home screen running on physical Android 13 smartphone" width="720" height="1600" loading="eager">
+          <div class="device-verified-tag">
+            <span class="device-verified-dot"></span>
+            Verified on Hardware &bull; Android 13
           </div>
         </div>
       </div>
@@ -130,19 +274,20 @@
   </div>
 </section>
 
-<div class="strip">
+<!-- Stats Strip -->
+<div class="strip" aria-label="Key Statistics">
   <div class="wrap strip-grid">
     <div class="strip-item">
       <span class="strip-num" data-count="5">5</span>
-      <span class="strip-label">Java Runtimes<br>(Java 8, 11, 17, 21, 25)</span>
+      <span class="strip-label">Java Runtimes<br>(JDK 8, 11, 17, 21, 26)</span>
     </div>
     <div class="strip-item">
       <span class="strip-num" data-count="3">3</span>
-      <span class="strip-label">GPU Renderers<br>(GL4ES, Zink, VirGL)</span>
+      <span class="strip-label">GPU Drivers<br>(GL4ES, Zink, VirGL)</span>
     </div>
     <div class="strip-item">
       <span class="strip-num" data-count="100">100</span>
-      <span class="strip-label">% Open Source<br>GPLv3 Clean Fork</span>
+      <span class="strip-label">% Open Source<br>GPLv3 Licensed</span>
     </div>
     <div class="strip-item">
       <span class="strip-num" data-count="0">0</span>
@@ -151,106 +296,186 @@
   </div>
 </div>
 
-<section class="features-section">
+<!-- Original App Screenshots Showcase Section -->
+<section id="screenshots" class="screenshots-section" aria-labelledby="screenshots-title">
   <div class="wrap">
     <div class="section-header">
-      <div class="eyebrow">Engineered For Mobile</div>
-      <h2 class="section-title">Everything you need for serious mobile Java.</h2>
-      <p class="section-subtitle">Blade Launcher brings desktop-grade Minecraft Java features straight to Android with a smooth portrait touch interface.</p>
+      <div class="eyebrow">Real Hardware Captures</div>
+      <h2 id="screenshots-title" class="section-title">Actual App Screenshots from Android 13</h2>
+      <p class="section-subtitle">Captured directly on an Infinix X6832 physical test device running the production v2.4.7 release build.</p>
+    </div>
+
+    <div class="screenshots-grid">
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_main.png" alt="Blade Launcher Android main dashboard interface with quick launch controls" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">Home Dashboard</span>
+          <h3>Portrait-First Mobile Interface</h3>
+          <p>Ergonomic one-handed layout with bottom navigation bar, active account avatar, and instant launch button anchored directly in the thumb zone.</p>
+        </div>
+      </article>
+
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_modpack.png" alt="CurseForge and Modrinth modpack browser inside Blade Launcher" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">Modpack Browser</span>
+          <h3>CurseForge &amp; Modrinth Integration</h3>
+          <p>Search, download, and install modpacks for Fabric, Forge, NeoForge, and Quilt with built-in version filters and automatic dependency management.</p>
+        </div>
+      </article>
+
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_skin_3d.png" alt="Interactive 3D Minecraft skin preview inside Blade Launcher" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">3D Wardrobe</span>
+          <h3>Interactive 3D Skin &amp; Cape Viewer</h3>
+          <p>Inspect custom skins in real-time 3D before applying. Supports direct Mojang texture URLs, 128&times;128 HD skins, and Steve/Alex arm models.</p>
+        </div>
+      </article>
+
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_menu.png" alt="Blade Launcher quick navigation drawer and settings menu" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">Navigation Sheet</span>
+          <h3>Quick Actions &amp; System Settings</h3>
+          <p>One-tap drawer access to Java Runtime Manager, virtual touch control mapping, game resolution, and launcher settings.</p>
+        </div>
+      </article>
+
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_about.png" alt="Blade Launcher Settings About screen showing release version 2.4.7" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">Verified Release</span>
+          <h3>v2.4.7 Production Build Details</h3>
+          <p>Signed release build information, Technoblade crown tribute, Sednium branding, upstream MovTery credits, and GPLv3 licensing.</p>
+        </div>
+      </article>
+
+      <article class="screenshot-card">
+        <div class="screenshot-frame">
+          <img src="img/screen_wardrobe.png" alt="Blade Launcher skin and cape customization wardrobe settings" loading="lazy" width="720" height="1600">
+        </div>
+        <div class="screenshot-meta">
+          <span class="screenshot-badge">Profile Customization</span>
+          <h3>Local Skins &amp; Custom Capes</h3>
+          <p>Manage local PNG textures, custom capes, and player avatars with atomic cache persistence and offline profile creation.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="eyebrow">Core Features</div>
+      <h2 id="features-title" class="section-title">Built for Mobile Gameplay</h2>
+      <p class="section-subtitle">Full desktop Java Edition features brought directly to Android with an ergonomic portrait interface.</p>
     </div>
 
     <div class="feature-grid">
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="f-mark">01 / DUAL ACCOUNTS</div>
-        <h3>Microsoft &amp; Offline Modes</h3>
-        <p>Sign in with your official Microsoft account for Realms and public servers, or instantly create local offline nickname profiles for singleplayer and LAN games.</p>
+        <h3>Microsoft &amp; Offline Accounts</h3>
+        <p>Sign in with your official Microsoft account for Realms, Hypixel, and public servers, or create local offline nickname profiles for singleplayer and LAN worlds.</p>
       </div>
 
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <div class="f-mark">02 / WARDROBE</div>
-        <h3>Custom Skins &amp; Capes</h3>
-        <p>Import custom 3D skins and animated capes via direct image URLs or local files with built-in format validation and Alex/Steve arm model selection.</p>
+        <h3>Custom Skins &amp; 3D Wardrobe</h3>
+        <p>Import custom skins and capes via direct image URLs or local files with built-in format validation, Steve/Alex arm models, and 128&times;128 HD texture support.</p>
       </div>
 
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/></svg>
         </div>
         <div class="f-mark">03 / PERFORMANCE</div>
-        <h3>Intelligent GPU Suggestion</h3>
-        <p>Blade Launcher checks device GPU capabilities and auto-recommends the most stable renderer — GL4ES, Vulkan Zink, or VirGL — without silent overrides.</p>
+        <h3>Automatic GPU Driver Detection</h3>
+        <p>Inspects device OpenGL ES and Vulkan driver capabilities on startup, recommending the most stable renderer — GL4ES 1.1.6, Vulkan Zink, or VirGL — without silent overrides.</p>
       </div>
 
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
         </div>
         <div class="f-mark">04 / RUNTIMES</div>
-        <h3>Java 8 to 25 On-Demand</h3>
-        <p>Zero bundled bloat. Download isolated JREs (Java 8, 11, 17, 21, and 25) directly per instance from the built-in Runtime Manager.</p>
+        <h3>Isolated OpenJDK Runtimes (8–26)</h3>
+        <p>Downloads verified OpenJDK runtimes (Java 8, 11, 17, 21, and 26) directly to isolated directories per game version, keeping the base APK compact.</p>
       </div>
 
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
         </div>
         <div class="f-mark">05 / MODDING</div>
-        <h3>CurseForge &amp; Modrinth</h3>
+        <h3>CurseForge &amp; Modrinth Browser</h3>
         <p>Search, install, and batch-update Forge, Fabric, Quilt, and NeoForge modpacks directly inside the launcher with automatic dependency resolution.</p>
       </div>
 
       <div class="feature card">
-        <div class="f-icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
+        <div class="f-icon-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>
         </div>
         <div class="f-mark">06 / CONTROLS</div>
-        <h3>Draggable Touch &amp; Gamepad</h3>
-        <p>Customize your on-screen touch layout with high-precision drag-and-drop controls, or connect physical Xbox/DualShock/Switch gamepads with full remapping.</p>
+        <h3>Custom Touch Controls &amp; Gamepad</h3>
+        <p>Configure draggable on-screen buttons, custom gestures, mouse cursor emulation, and gyroscope aiming, or connect Bluetooth controllers (Xbox, DualShock, Switch).</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Interactive Runtime Matcher -->
-<section id="matcher" class="matcher-section">
+<section id="matcher" class="matcher-section" aria-labelledby="matcher-title">
   <div class="wrap">
     <div class="section-header">
-      <div class="eyebrow">Interactive Tool</div>
-      <h2 class="section-title">Smart Runtime &amp; Renderer Matcher</h2>
-      <p class="section-subtitle">Pick your target Minecraft version to see how Blade Launcher automatically configures isolated Java runtimes and GPU renderers.</p>
+      <div class="eyebrow">Compatibility Tool</div>
+      <h2 id="matcher-title" class="section-title">Runtime &amp; Renderer Matcher</h2>
+      <p class="section-subtitle">Select your target Minecraft version to see how Blade Launcher configures isolated Java runtimes and graphics drivers.</p>
     </div>
 
     <div class="matcher-container">
-      <div class="matcher-selector">
-        <button class="mc-ver-btn active" data-version="1.21.4">
+      <div class="matcher-selector" role="tablist" aria-label="Minecraft Version Selectors">
+        <button class="mc-ver-btn active" data-version="1.21.4" role="tab" aria-selected="true">
           <span>Minecraft 1.21.4</span>
           <span class="ver-label">Modern / Fabric</span>
         </button>
-        <button class="mc-ver-btn" data-version="1.20.4">
+        <button class="mc-ver-btn" data-version="1.20.4" role="tab" aria-selected="false">
           <span>Minecraft 1.20.4</span>
           <span class="ver-label">Trails &amp; Tales</span>
         </button>
-        <button class="mc-ver-btn" data-version="1.16.5">
+        <button class="mc-ver-btn" data-version="1.16.5" role="tab" aria-selected="false">
           <span>Minecraft 1.16.5</span>
           <span class="ver-label">Nether / Forge</span>
         </button>
-        <button class="mc-ver-btn" data-version="1.12.2">
+        <button class="mc-ver-btn" data-version="1.12.2" role="tab" aria-selected="false">
           <span>Minecraft 1.12.2</span>
           <span class="ver-label">Classic Modding</span>
         </button>
-        <button class="mc-ver-btn" data-version="26.2">
+        <button class="mc-ver-btn" data-version="26.2" role="tab" aria-selected="false">
           <span>Minecraft 26.2+</span>
-          <span class="ver-label">Next-Gen Release</span>
+          <span class="ver-label">Modern Snapshot</span>
         </button>
       </div>
 
-      <div class="matcher-display">
+      <div class="matcher-display" role="tabpanel">
         <h4 id="matcherTitle">Minecraft 1.21.4 (Tricky Trials / Modern)</h4>
         
         <div class="matcher-detail-item">
@@ -271,13 +496,63 @@
   </div>
 </section>
 
-<!-- Comparison Matrix Section -->
-<section id="compare" class="compare-section">
+<!-- Hardware Specifications Table Section -->
+<section id="specs" class="specs-section" aria-labelledby="specs-title">
   <div class="wrap">
     <div class="section-header">
-      <div class="eyebrow">Comparison</div>
-      <h2 class="section-title">Why choose Blade Launcher?</h2>
-      <p class="section-subtitle">See how Blade Launcher compares to traditional mobile launchers.</p>
+      <div class="eyebrow">Hardware Specifications</div>
+      <h2 id="specs-title" class="section-title">System Requirements</h2>
+      <p class="section-subtitle">Ensure your Android smartphone or tablet meets the hardware specifications for smooth gameplay.</p>
+    </div>
+
+    <div class="specs-table-wrapper">
+      <table class="specs-table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Minimum Requirement</th>
+            <th>Recommended Specification</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Operating System</td>
+            <td>Android 8.0 (Oreo / API 26)</td>
+            <td>Android 11, 12, 13, 14, or 15+</td>
+          </tr>
+          <tr>
+            <td>CPU Architecture</td>
+            <td>64-bit ARM (ARM64-v8a) or x86_64</td>
+            <td>Octa-Core ARM Cortex (Snapdragon 7/8 series or Dimensity 8000+)</td>
+          </tr>
+          <tr>
+            <td>System Memory (RAM)</td>
+            <td>3 GB RAM (Vanilla Minecraft 1.16+)</td>
+            <td>6 GB to 8 GB+ RAM (Fabric/Forge modpacks with Sodium/Iris)</td>
+          </tr>
+          <tr>
+            <td>Graphics Hardware</td>
+            <td>OpenGL ES 3.0 support</td>
+            <td>Vulkan 1.2+ capable GPU (Qualcomm Adreno 600+ / ARM Mali-G70+)</td>
+          </tr>
+          <tr>
+            <td>Free Storage Space</td>
+            <td>1.5 GB free device storage</td>
+            <td>5 GB+ high-speed UFS storage (for game assets and modpacks)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Matrix Section -->
+<section id="compare" class="compare-section" aria-labelledby="compare-title">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="eyebrow">Technical Comparison</div>
+      <h2 id="compare-title" class="section-title">Why Choose Blade Launcher?</h2>
+      <p class="section-subtitle">Comparing Blade Launcher to traditional Android Java wrappers.</p>
     </div>
 
     <div class="compare-table-wrapper">
@@ -286,44 +561,44 @@
           <tr>
             <th>Feature</th>
             <th class="highlight-col">Blade Launcher</th>
-            <th>Default Launchers</th>
+            <th>Traditional Launchers</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Portrait Mobile UX Navigation</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> Full Bottom Bar UX</td>
-            <td><span class="cross-icon">✕</span> Landscape only</td>
+            <td>Portrait Mobile Navigation</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> One-Handed Bottom Bar</td>
+            <td><span class="cross-icon">&#10005;</span> Forced landscape only</td>
           </tr>
           <tr>
-            <td>Java 8, 11, 17, 21 &amp; 25 Manager</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> On-Demand Isolated JREs</td>
-            <td><span class="cross-icon">✕</span> Fixed single bundle</td>
+            <td>Isolated OpenJDK 8 to 26</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> On-Demand Isolated JREs</td>
+            <td><span class="cross-icon">&#10005;</span> Fixed single runtime bundle</td>
           </tr>
           <tr>
-            <td>Offline &amp; Microsoft Dual Accounts</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> Built-in &amp; Instant</td>
-            <td><span class="check-icon">✓</span> Supported</td>
+            <td>Dual Account Support</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> Microsoft OAuth2 + Offline Profiles</td>
+            <td><span class="check-icon">&#10003;</span> Supported</td>
           </tr>
           <tr>
-            <td>Skin &amp; Cape URL/File Downloader</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> 3D Preview &amp; Validation</td>
-            <td><span class="cross-icon">✕</span> Limited or complex</td>
+            <td>Skin &amp; Cape Wardrobe</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> 3D Preview, Mojang URL, 128x128 HD</td>
+            <td><span class="cross-icon">&#10005;</span> Basic 64x64 only or manual file swaps</td>
           </tr>
           <tr>
-            <td>GPU Renderer Recommendation</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> Intelligent Device Check</td>
-            <td><span class="cross-icon">✕</span> Manual trial &amp; error</td>
+            <td>GPU Driver Recommendation</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> GL4ES, Vulkan Zink, VirGL Check</td>
+            <td><span class="cross-icon">&#10005;</span> Manual trial and error</td>
           </tr>
           <tr>
-            <td>Batch Mod Updater</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> Automated Modrinth Updates</td>
-            <td><span class="cross-icon">✕</span> Manual file swaps</td>
+            <td>In-App Modpack Browser</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> CurseForge &amp; Modrinth Auto-Install</td>
+            <td><span class="cross-icon">&#10005;</span> Manual zip downloads and extraction</td>
           </tr>
           <tr>
-            <td>100% Free &amp; Open Source</td>
-            <td class="highlight-col"><span class="check-icon">✓</span> GPLv3 Licensed</td>
-            <td><span class="check-icon">✓</span> Open source</td>
+            <td>Privacy &amp; Open Source</td>
+            <td class="highlight-col"><span class="check-icon">&#10003;</span> 100% GPLv3, Zero Trackers</td>
+            <td><span class="check-icon">&#10003;</span> Open source</td>
           </tr>
         </tbody>
       </table>
@@ -331,25 +606,80 @@
   </div>
 </section>
 
+<!-- Frequently Asked Questions (FAQ) Section -->
+<section id="faq" class="faq-section" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="section-header">
+      <div class="eyebrow">Common Questions</div>
+      <h2 id="faq-title" class="section-title">Frequently Asked Questions</h2>
+      <p class="section-subtitle">Direct answers to common questions about running Minecraft Java Edition on Android.</p>
+    </div>
+
+    <div class="faq-grid">
+      <details class="faq-card" open>
+        <summary class="faq-question">Can I play on multiplayer Minecraft Java servers with Blade Launcher?</summary>
+        <div class="faq-answer">
+          <p>Yes. You can connect to online Java Edition servers, Realms, and local LAN worlds. To join servers requiring online verification (such as Hypixel or public vanilla servers), sign in with an official Microsoft account that owns Minecraft Java Edition. For local LAN play and offline-mode servers, you can create offline local profiles with custom nicknames.</p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">Which Minecraft versions and mod loaders are supported?</summary>
+        <div class="faq-answer">
+          <p>Blade Launcher supports all Minecraft Java releases from version 1.7.2 through the latest 1.21.4 (and modern 26.2+ snapshots). Built-in mod loader support includes Fabric, Forge, NeoForge, and Quilt with automatic dependency resolution and in-app modpack downloads.</p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">How do isolated Java runtimes work (OpenJDK 8 through 26)?</summary>
+        <div class="faq-answer">
+          <p>Different Minecraft versions require specific Java runtimes: Minecraft 1.12.2 and 1.16.5 run on Java 8/11, Minecraft 1.17 to 1.20.4 requires Java 17, and 1.20.5+ strictly mandates Java 21+. Blade Launcher downloads official OpenJDK binaries on demand into isolated sandboxes per version, ensuring version stability without bloating the initial APK file.</p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">How do I import custom skins and animated capes?</summary>
+        <div class="faq-answer">
+          <p>You can import skins from local device storage or by pasting direct texture URLs (including official Mojang CDN links). The launcher supports classic 64&times;32 skins, standard 64&times;64 skins, and high-definition 128&times;128 or 256&times;256 skins with Steve (wide) and Alex (slim) 3D arm previews before applying.</p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">Which GPU renderer should I choose: GL4ES, Vulkan Zink, or VirGL?</summary>
+        <div class="faq-answer">
+          <p><strong>GL4ES 1.1.6</strong> is the default OpenGL-to-OpenGL-ES translator and provides optimal stability on Qualcomm Adreno and ARM Mali GPUs. <strong>Vulkan Zink</strong> renders desktop OpenGL directly over Vulkan 1.2 drivers for modern hardware and is required for Minecraft 26.2+. <strong>VirGL</strong> is available for specialized virtualized GPU setups. The launcher inspects your GPU drivers on startup and suggests the most reliable driver.</p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary class="faq-question">Why is Blade Launcher distributed on GitHub instead of Google Play?</summary>
+        <div class="faq-answer">
+          <p>Running Minecraft Java Edition on Android requires downloading and executing external OpenJDK binaries and game bytecode (.jar and .so files). Google Play Developer policies strictly prohibit apps from executing downloaded code outside the APK (Dynamic Code Execution policy). In addition, Mojang third-party guidelines restrict launchers on commercial app stores. GitHub Releases is the official, uncompromised distribution channel.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
 <!-- Download Section -->
-<section id="download" class="download-section">
+<section id="download" class="download-section" aria-labelledby="download-title">
   <div class="wrap">
     <div class="download-box">
       <div class="download-inner">
         <div>
-          <div class="eyebrow" style="color:#FF7A1A; background:rgba(255,107,0,0.18);">Get Started Now</div>
-          <h2>Ready to experience Minecraft on Android?</h2>
-          <p>Download the official production release APK and start playing singleplayer, modded servers, or LAN worlds right away.</p>
+          <div class="eyebrow" style="color:#FF7A1A; background:rgba(255,107,0,0.18);">Official Release</div>
+          <h2 id="download-title">Download Blade Launcher for Android</h2>
+          <p>Download the official production release APK and start playing singleplayer, modded servers, or LAN worlds on your device.</p>
         </div>
         
         <div class="download-card-inner">
           <span class="download-badge-ver">v2.4.7 (Official Release)</span>
           <a href="https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v2.4.7/BladeLauncher-2.4.7.apk" class="btn btn-primary" style="width:100%;" target="_blank" rel="noopener noreferrer">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
             Download Blade Launcher APK
           </a>
           <div class="download-specs">
-            Supports ARM64, ARMv7, x86, x86_64<br>Requires Android 8.0 (Oreo) or later<br>
+            Supports ARM64, ARMv7, x86, x86_64 &bull; 292 MB<br>Requires Android 8.0 (API 26) or later<br>
             <span class="mono" style="font-size:0.75rem; word-break:break-all; display:block; margin-top:6px; opacity:0.8;">SHA-256: bd55eed2230a227a8f1ad8b7b62506ed10d6281136a1e71ea8e5accbd35b1a97</span>
           </div>
         </div>
@@ -357,26 +687,31 @@
     </div>
   </div>
 </section>
+</main>
 
 <footer class="site-footer">
   <div class="wrap">
     <div class="footer-brand">
       <h3>Blade Launcher</h3>
       <p class="footer-note">
-        An unofficial modified version of ZalithLauncher2, developed and maintained by Sednium under GPLv3.
+        An open-source mobile launcher for Minecraft: Java Edition, maintained by Sednium Technologies under the GNU General Public License v3 (GPLv3).
       </p>
     </div>
 
     <div class="footer-col">
       <h4>Navigation</h4>
       <a href="index.html">Home</a>
-      <a href="docs.html">Documentation</a>
-      <a href="changelog.html">Changelog</a>
+      <a href="#screenshots">Screenshots</a>
+      <a href="#features">Features</a>
       <a href="#matcher">Runtime Matcher</a>
+      <a href="#specs">Requirements</a>
+      <a href="#faq">FAQ</a>
     </div>
 
     <div class="footer-col">
       <h4>Resources</h4>
+      <a href="docs.html">Documentation</a>
+      <a href="changelog.html">Changelog</a>
       <a href="https://github.com/Sednium-Technologies/Blade-Launcher" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
       <a href="https://github.com/Sednium-Technologies/Blade-Launcher/releases" target="_blank" rel="noopener noreferrer">Release Downloads</a>
       <a href="https://github.com/Sednium-Technologies/Blade-Launcher/issues" target="_blank" rel="noopener noreferrer">Issue Tracker</a>
@@ -392,8 +727,8 @@
 
   <div class="wrap">
     <div class="footer-bottom">
-      <span>© 2026 Sednium Technologies. Open source under GNU GPLv3.</span>
-      <span>Not affiliated with Mojang Studios or Microsoft.</span>
+      <span>&copy; 2026 Sednium Technologies. Open source under GNU GPLv3.</span>
+      <span>Not affiliated with Mojang Studios or Microsoft. Minecraft is a registered trademark of Mojang Synergies AB.</span>
     </div>
   </div>
 </footer>

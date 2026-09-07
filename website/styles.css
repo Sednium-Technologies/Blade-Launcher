@@ -1327,6 +1327,293 @@ img, svg {
 .tag-changed { background: var(--tag-changed-bg); color: var(--tag-changed); }
 .tag-removed { background: var(--tag-removed-bg); color: var(--tag-removed); }
 
+/* ---------- Real Device Screenshot Mockup in Hero ---------- */
+.device-phone {
+  width: 300px;
+  background: #110E0C;
+  border-radius: 42px;
+  padding: 10px;
+  border: 1.5px solid rgba(255, 107, 0, 0.35);
+  box-shadow: 0 35px 80px -20px rgba(0, 0, 0, 0.85),
+              0 0 50px -10px var(--flame-glow);
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  user-select: none;
+  margin: 0 auto;
+}
+
+.device-phone:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 45px 90px -20px rgba(0, 0, 0, 0.9),
+              0 0 65px -5px var(--flame-glow);
+}
+
+.device-phone-notch {
+  width: 60px;
+  height: 5px;
+  background: #25201C;
+  border-radius: 4px;
+  margin: 4px auto 8px;
+}
+
+.device-phone-screen {
+  border-radius: 32px;
+  overflow: hidden;
+  background: #000000;
+  position: relative;
+  aspect-ratio: 9 / 20;
+  display: flex;
+}
+
+.device-phone-screen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.device-verified-tag {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 10, 9, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 107, 0, 0.4);
+  color: #F7F1E4;
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.device-verified-dot {
+  width: 7px;
+  height: 7px;
+  background: #4ADE80;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #4ADE80;
+}
+
+/* ---------- App Screenshot Showcase Section ---------- */
+.screenshots-section {
+  padding: 90px 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 0, 0.03) 50%, transparent 100%);
+  position: relative;
+}
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+  margin-top: 48px;
+}
+
+.screenshot-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.screenshot-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--line-highlight);
+  box-shadow: var(--shadow-md);
+}
+
+.screenshot-frame {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0C0A09;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  aspect-ratio: 9 / 20;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screenshot-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.screenshot-card:hover .screenshot-frame img {
+  transform: scale(1.02);
+}
+
+.screenshot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.screenshot-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--flame);
+  background: var(--flame-wash);
+  padding: 3px 9px;
+  border-radius: 999px;
+  width: fit-content;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.screenshot-meta h3 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--ink-pure);
+}
+
+.screenshot-meta p {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ---------- Hardware Specs Table ---------- */
+.specs-section {
+  padding: 70px 0;
+}
+
+.specs-table-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-top: 36px;
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.specs-table th, .specs-table td {
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.specs-table th {
+  background: rgba(255, 107, 0, 0.06);
+  font-family: var(--display);
+  font-size: 14px;
+  color: var(--ink-pure);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.specs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.specs-table td:first-child {
+  font-weight: 600;
+  color: var(--ink-pure);
+}
+
+.specs-table td {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- FAQ Accordion ---------- */
+.faq-section {
+  padding: 80px 0;
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 40px;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.faq-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  transition: all 0.25s ease;
+}
+
+.faq-card[open] {
+  border-color: var(--line-highlight);
+  background: var(--bg-card-hover);
+}
+
+.faq-question {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-pure);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  user-select: none;
+}
+
+.faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-question::after {
+  content: "+";
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--flame);
+  transition: transform 0.2s ease;
+  font-weight: 400;
+  margin-left: 14px;
+}
+
+.faq-card[open] .faq-question::after {
+  content: "−";
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  margin-top: 14px;
+  font-size: 14.5px;
+  color: var(--muted);
+  line-height: 1.65;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.faq-answer p {
+  margin: 0;
+}
+
+.faq-answer p + p {
+  margin-top: 10px;
+}
+
 /* ===========================================================
    ANIMATIONS & RESPONSIVE DESIGN
 =========================================================== */

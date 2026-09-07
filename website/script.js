@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---------- Scroll Reveal Animations ---------- */
   var revealTargets = document.querySelectorAll(
-    '.hero-copy, .hero-device, .strip-item, .feature, .doc-block, .cl-entry, .download-inner > *, .compare-table-wrapper, .matcher-container'
+    '.hero-copy, .hero-device, .strip-item, .feature, .doc-block, .cl-entry, .download-inner > *, .compare-table-wrapper, .matcher-container, .screenshot-card, .faq-card, .specs-table-wrapper'
   );
   revealTargets.forEach(function (el) { el.classList.add('reveal'); });
 
@@ -123,10 +123,10 @@ document.addEventListener('DOMContentLoaded', function () {
       reason: 'Classic 1.12.2 modding requires Java 8. Blade Launcher boots isolated Java 8 runtimes with optimized memory arguments for smooth 60 FPS mobile gameplay.'
     },
     '26.2': {
-      title: 'Minecraft 26.2+ (Next-Gen Snapshot / Release)',
-      java: 'Java 25 JRE',
+      title: 'Minecraft 26.2+ (Modern Snapshot / Release)',
+      java: 'Java 21 / 25 / 26 JRE',
       renderer: 'Vulkan Zink (Auto-suggested)',
-      reason: 'Next-generation Minecraft versions utilize modern Java 25 features and newer LWJGL methods. Blade Launcher automatically enables patched GLFW bridges and Vulkan Zink rendering.'
+      reason: 'Modern Minecraft snapshots require Java 21+ and modern GLFW cursor input methods. Blade Launcher provides compiled native bridges and automatic Vulkan Zink renderer setup.'
     }
   };
 
