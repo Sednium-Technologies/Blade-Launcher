@@ -5,6 +5,8 @@
 **Next-Generation Mobile Launcher for Minecraft: Java Edition on Android**
 
 [![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20%28API%2026%2B%29-orange?style=for-the-badge&logo=android)](https://developer.android.com)
+[![Release](https://img.shields.io/badge/Release-v2.4.7-EC5E27?style=for-the-badge&logo=github)](https://github.com/Sednium-Technologies/Blade-Launcher/releases/tag/v2.4.7)
+[![Download APK](https://img.shields.io/badge/Download-APK-success?style=for-the-badge&logo=android)](https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v2.4.7/BladeLauncher-2.4.7.apk)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0%2B-7F52FF?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20M3E-4285F4?style=for-the-badge&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![Java Runtimes](https://img.shields.io/badge/Java-8%20→%2026-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org)
@@ -18,6 +20,7 @@
 
 ## 📑 Table of Contents
 
+- [📥 Download & Releases](#-download--releases)
 - [✨ Key Highlights](#-key-highlights)
 - [🎨 Design System & Aesthetics](#-design-system--aesthetics)
 - [☕ Java Runtime Management (JDK 8–26)](#-java-runtime-management-jdk-826)
@@ -31,6 +34,20 @@
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
 - [❓ Troubleshooting & FAQ](#-troubleshooting--faq)
 - [📜 License & Compliance Notice](#-license--compliance-notice)
+
+---
+
+## 📥 Download & Releases
+
+Official production releases are distributed exclusively through GitHub Releases:
+
+| Asset | Version | Format | Checksum (SHA-256) |
+|---|---|---|---|
+| [**BladeLauncher-2.4.7.apk**](https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v2.4.7/BladeLauncher-2.4.7.apk) | **v2.4.7** (Official) | Signed Universal APK (ARM64, ARMv7, x86_64) | `bd55eed2230a227a8f1ad8b7b62506ed10d6281136a1e71ea8e5accbd35b1a97` |
+
+- **Release Notes & Assets**: [GitHub Releases v2.4.7](https://github.com/Sednium-Technologies/Blade-Launcher/releases/tag/v2.4.7)
+- **Minimum Requirements**: Android 8.0 (API 26) or higher. Recommended: Android 10+ with Vulkan support.
+- **Distribution Scope**: GitHub Releases only. Not distributed on Google Play Store pursuant to Mojang Third-Party Brand Guidelines and native execution restrictions.
 
 ---
 

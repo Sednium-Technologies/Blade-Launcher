@@ -56,8 +56,8 @@
 
   <div class="cl-entry">
     <div class="cl-side">
-      <span class="cl-version mono">v2.4.7-debug</span>
-      <span class="cl-date">Current Build</span>
+      <span class="cl-version mono">v2.4.7</span>
+      <span class="cl-date">August 2026</span>
     </div>
     <div class="cl-body">
       <div class="cl-item">
@@ -78,7 +78,11 @@
       </div>
       <div class="cl-item">
         <span class="tag tag-fixed">Fixed</span>
-        <p>Fixed Minecraft 26.2+ crash caused by missing GLFW method implementations in native bridge.</p>
+        <p>Fixed Minecraft 26.2+ crash caused by missing GLFW method implementations (glfwGetPreeditCursorRectangle / glfwSetPreeditCursorRectangle) in native bridge.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-fixed">Fixed</span>
+        <p>Skin/cape download reliability and dimension validation — supports direct Mojang texture URLs, classic 64x32/64x64 skins, and HD multiples (128x128, 256x256) with atomic cache downloads.</p>
       </div>
       <div class="cl-item">
         <span class="tag tag-fixed">Fixed</span>
@@ -91,6 +95,10 @@
       <div class="cl-item">
         <span class="tag tag-changed">Changed</span>
         <p>Replaced fixed side navigation rail with bottom navigation bar optimized for portrait mobile screens.</p>
+      </div>
+      <div class="cl-item">
+        <span class="tag tag-changed">Changed</span>
+        <p>Adopted modern WindowInsetsControllerCompat fullscreen handling while preserving adaptive portrait status bar visibility.</p>
       </div>
     </div>
   </div>
