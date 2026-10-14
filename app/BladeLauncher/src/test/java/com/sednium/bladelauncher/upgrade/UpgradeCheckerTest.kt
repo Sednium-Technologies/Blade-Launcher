@@ -26,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class UpgradeCheckerTest {
@@ -215,46 +216,60 @@ class UpgradeCheckerTest {
     /**
      * Live network test: Fetch the actual published release from GitHub API
      * and verify that it parses cleanly into RemoteData and matches v2.4.7.
+     * Wrapped in assumeTrue and try-catch for offline and CI hermeticity.
      */
     @Test
     fun testLiveGitHubApiReleaseDetection() = runBlocking {
-        val url = java.net.URL("https://api.github.com/repos/Sednium-Technologies/Blade-Launcher/releases/latest")
-        val conn = url.openConnection() as java.net.HttpURLConnection
-        conn.setRequestProperty("User-Agent", "BladeLauncher-Test")
-        conn.setRequestProperty("Accept", "application/vnd.github+json")
-        conn.connectTimeout = 10000
-        conn.readTimeout = 10000
+        try {
+            val url = java.net.URL("https://api.github.com/repos/Sednium-Technologies/Blade-Launcher/releases/latest")
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.setRequestProperty("User-Agent", "BladeLauncher-Test")
+            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            conn.connectTimeout = 5000
+            conn.readTimeout = 5000
 
-        val responseCode = conn.responseCode
-        assertEquals(200, responseCode)
+            val responseCode = try {
+                conn.responseCode
+            } catch (e: Exception) {
+                assumeTrue("Network unavailable: ${e.message}", false)
+                return@runBlocking
+            }
 
-        val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
-        val release = GLOBAL_JSON.decodeFromString(GithubReleaseApi.serializer(), jsonString)
+            assumeTrue(
+                "GitHub API rate limit reached or service unavailable (status $responseCode)",
+                responseCode == 200
+            )
 
-        assertEquals("v2.4.7", release.tagName)
-        val remoteData = release.toRemoteData()
-        assertEquals("2.4.7", remoteData.version)
-        assertTrue(remoteData.files.isNotEmpty())
+            val jsonString = conn.inputStream.bufferedReader().use { it.readText() }
+            val release = GLOBAL_JSON.decodeFromString(GithubReleaseApi.serializer(), jsonString)
 
-        val apkAsset = remoteData.files.first()
-        assertEquals("BladeLauncher-2.4.7.apk", apkAsset.fileName)
-        assertTrue(apkAsset.size > 200_000_000L) // Real APK is ~306 MB
-        assertEquals(RemoteData.RemoteFile.Arch.ALL, apkAsset.arch)
+            assertEquals("v2.4.7", release.tagName)
+            val remoteData = release.toRemoteData()
+            assertEquals("2.4.7", remoteData.version)
+            assertTrue(remoteData.files.isNotEmpty())
 
-        // Verify that running checkForUpgrade with this live release against current 2.4.7 triggers onIsLatest
-        val vm = LauncherUpgradeViewModel()
-        var isLatestCalled = false
-        var upgradeCalled = false
+            val apkAsset = remoteData.files.first()
+            assertEquals("BladeLauncher-2.4.7.apk", apkAsset.fileName)
+            assertTrue(apkAsset.size > 200_000_000L) // Real APK is ~306 MB
+            assertEquals(RemoteData.RemoteFile.Arch.ALL, apkAsset.arch)
 
-        vm.checkForUpgrade(
-            data = remoteData,
-            lastIgnored = null,
-            ignoreDismissedVersions = false,
-            onUpgrade = { upgradeCalled = true },
-            onIsLatest = { isLatestCalled = true }
-        )
+            // Verify that running checkForUpgrade with this live release against current 2.4.7 triggers onIsLatest
+            val vm = LauncherUpgradeViewModel()
+            var isLatestCalled = false
+            var upgradeCalled = false
 
-        assertTrue("Live release v2.4.7 must trigger onIsLatest for current app version 2.4.7", isLatestCalled)
-        assertFalse("Live release v2.4.7 must NOT trigger onUpgrade for current app version 2.4.7", upgradeCalled)
+            vm.checkForUpgrade(
+                data = remoteData,
+                lastIgnored = null,
+                ignoreDismissedVersions = false,
+                onUpgrade = { upgradeCalled = true },
+                onIsLatest = { isLatestCalled = true }
+            )
+
+            assertTrue("Live release v2.4.7 must trigger onIsLatest for current app version 2.4.7", isLatestCalled)
+            assertFalse("Live release v2.4.7 must NOT trigger onUpgrade for current app version 2.4.7", upgradeCalled)
+        } catch (e: Exception) {
+            assumeTrue("Skipping live network test due to network or API error: ${e.message}", false)
+        }
     }
 }

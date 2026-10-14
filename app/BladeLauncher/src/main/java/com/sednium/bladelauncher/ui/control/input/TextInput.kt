@@ -206,20 +206,7 @@ fun InGameChatBar(
                 // Quick "/" command button
                 FilledTonalIconButton(
                     onClick = {
-                        val currentText = textFieldValue.text
-                        val (newText, newCursor) = if (currentText.startsWith("/")) {
-                            val updated = currentText.removePrefix("/")
-                            val cursor = (textFieldValue.selection.end - 1).coerceIn(0, updated.length)
-                            Pair(updated, cursor)
-                        } else {
-                            val updated = "/$currentText"
-                            val cursor = (textFieldValue.selection.end + 1).coerceIn(0, updated.length)
-                            Pair(updated, cursor)
-                        }
-                        textFieldValue = TextFieldValue(
-                            text = newText,
-                            selection = TextRange(newCursor)
-                        )
+                        textFieldValue = toggleCommandSlash(textFieldValue)
                         focusRequester.requestFocus()
                     },
                     modifier = Modifier.size(36.dp),
@@ -322,5 +309,22 @@ fun InGameChatBar(
                 }
             }
         }
+    }
+}
+
+/**
+ * Toggles a leading slash '/' on the given [current] [TextFieldValue],
+ * appropriately updating the cursor selection.
+ */
+internal fun toggleCommandSlash(current: TextFieldValue): TextFieldValue {
+    val currentText = current.text
+    return if (currentText.startsWith("/")) {
+        val updated = currentText.removePrefix("/")
+        val cursor = (current.selection.end - 1).coerceIn(0, updated.length)
+        TextFieldValue(text = updated, selection = TextRange(cursor))
+    } else {
+        val updated = "/$currentText"
+        val cursor = (current.selection.end + 1).coerceIn(0, updated.length)
+        TextFieldValue(text = updated, selection = TextRange(cursor))
     }
 }
