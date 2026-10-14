@@ -87,7 +87,7 @@ import com.sednium.bladelauncher.terracotta.TerracottaVPNService
 import com.sednium.bladelauncher.ui.base.BaseAppCompatActivity
 import com.sednium.bladelauncher.ui.base.applyFullscreen
 import com.sednium.bladelauncher.ui.components.rememberBoxSize
-import com.sednium.bladelauncher.ui.control.input.HidableInputLayout
+import com.sednium.bladelauncher.ui.control.input.InGameChatBar
 import com.sednium.bladelauncher.ui.control.input.TextInputMode
 import com.sednium.bladelauncher.ui.screens.game.elements.OpenFolderLayer
 import com.sednium.bladelauncher.ui.screens.game.elements.OpenFolderOperation
@@ -277,6 +277,10 @@ class VMViewModel : ViewModel() {
         sender.sendEnter()
     }
 
+    fun sendTab() {
+        sender.sendTab()
+    }
+
     /**
      * 仅处理特殊按键
      */
@@ -443,16 +447,15 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                     }
 
                     if (vmViewModel.textInputMode == TextInputMode.ENABLE) {
-                        //输入栏控制区域
-                        HidableInputLayout(
-                            onSend = { text ->
+                        InGameChatBar(
+                            onSendText = { text ->
                                 vmViewModel.sendInputText(text)
                             },
-                            onBackspace = {
-                                vmViewModel.sendBackspace()
-                            },
-                            onEnter = {
+                            onSendEnter = {
                                 vmViewModel.sendEnder()
+                            },
+                            onSendTab = {
+                                vmViewModel.sendTab()
                             },
                             onClose = {
                                 vmViewModel.textInputMode = TextInputMode.DISABLE
