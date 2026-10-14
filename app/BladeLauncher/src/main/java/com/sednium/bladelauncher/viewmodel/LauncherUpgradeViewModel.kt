@@ -42,20 +42,20 @@ import com.sednium.bladelauncher.BuildConfig
 import com.sednium.bladelauncher.R
 import com.sednium.bladelauncher.path.GLOBAL_CLIENT
 import com.sednium.bladelauncher.path.GLOBAL_JSON
-import com.sednium.bladelauncher.path.URL_PROJECT_INFO
+import com.sednium.bladelauncher.path.URL_BLADE_RELEASES_API
 import com.sednium.bladelauncher.setting.AllSettings
 import com.sednium.bladelauncher.ui.components.MarqueeText
 import com.sednium.bladelauncher.ui.components.SimpleListDialog
 import com.sednium.bladelauncher.ui.screens.content.elements.DisabledAlpha
 import com.sednium.bladelauncher.ui.upgrade.UpgradeDialog
 import com.sednium.bladelauncher.ui.upgrade.UpgradeFilesDialog
-import com.sednium.bladelauncher.upgrade.GithubContentApi
+import com.sednium.bladelauncher.upgrade.GithubReleaseApi
 import com.sednium.bladelauncher.upgrade.RemoteData
 import com.sednium.bladelauncher.upgrade.TooFrequentOperationException
 import com.sednium.bladelauncher.utils.logging.Logger
 import com.sednium.bladelauncher.utils.network.safeBodyAsJson
 import com.sednium.bladelauncher.utils.network.withRetry
-import com.sednium.bladelauncher.utils.string.decodeBase64
+import com.sednium.bladelauncher.utils.string.isBiggerTo
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -78,11 +78,9 @@ sealed interface LauncherUpgradeOperation {
 }
 
 /**
- * 最新版本的信息获取源
+ * 最新版本的信息获取源 (Blade Launcher GitHub Releases)
  */
-private const val LATEST_VERSION = "latest_version_md.json"
-private const val LATEST_API_URL = "$URL_PROJECT_INFO/$LATEST_VERSION"
-private const val LATEST_API_CHINESE_URL = "https://repo.miawa.cn/zalith-info/v2/$LATEST_VERSION"
+private const val LATEST_API_URL = URL_BLADE_RELEASES_API
 
 /**
  * 用于记录启动器更新 ViewModel
@@ -187,68 +185,56 @@ class LauncherUpgradeViewModel: ViewModel() {
     }
 
     /**
-     * 从远端获取最新的启动器信息
+     * 从远端获取最新的启动器信息 (直接查询 GitHub Releases API)
      */
     private suspend fun fetchRemoteData(): RemoteData? {
         return withContext(Dispatchers.IO) {
             runCatching {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
-                    //获取最新的启动器信息
-                    val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
-                    //需要Base64解密
-                    val contentString = decodeBase64(api.content)
-                    GLOBAL_JSON.decodeFromString(RemoteData.serializer(), contentString)
+                    val release = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubReleaseApi>()
+                    release.toRemoteData()
                 }
             }.getOrElse { e ->
-                if (Locale.getDefault().language == "zh") {
-                    runCatching {
-                        Logger.info(TAG, "Check for updates in the Chinese region.")
-                        //在中国地区，可能因为无法访问 Github API 导致获取更新信息失败
-                        withRetry(logTag = "LauncherUpgrade_Chinese", maxRetries = 2) {
-                            GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<RemoteData>()
-                        }
-                    }.getOrElse { e ->
-                        Logger.warning(TAG, "Failed to check for launcher upgrade!", e)
-                        null
-                    }
-                } else {
-                    Logger.warning(TAG, "Failed to check for launcher upgrade!", e)
-                    null
-                }
+                Logger.warning(TAG, "Failed to check for launcher upgrade from GitHub Releases!", e)
+                null
             }
         }
     }
 
     /**
      * 检查启动器是否需要更新
+     * @param data 远端最新版本数据
      * @param lastIgnored 上次弹出更新弹窗时，用户所忽略的版本号
      * @param ignoreDismissedVersions 是否忽略用户已忽略的版本
      * @param onUpgrade 发现需要更新时调用
      * @param onIsLatest 当前已是最新版本时
      */
-    private suspend fun checkForUpgrade(
+    internal suspend fun checkForUpgrade(
         data: RemoteData,
         lastIgnored: Int?,
         ignoreDismissedVersions: Boolean,
         onUpgrade: suspend (RemoteData) -> Unit,
         onIsLatest: suspend () -> Unit = {}
     ) {
+        val currentVersionName = BuildConfig.VERSION_NAME
         val currentVersionCode = BuildConfig.VERSION_CODE
-        if (currentVersionCode < data.code) {
+        val isNewer = data.version.isBiggerTo(currentVersionName) || (data.code > currentVersionCode && data.code > 100000)
+
+        if (isNewer) {
             //启动器为旧版本
             when {
                 ignoreDismissedVersions && lastIgnored == data.code -> {
                     //忽略这次更新
-                    Logger.info(TAG, "Launcher update detected: $currentVersionCode -> ${data.code}, but ignored by user")
+                    Logger.info(TAG, "Launcher update detected: $currentVersionName ($currentVersionCode) -> ${data.version} (${data.code}), but ignored by user")
                 }
                 else -> {
                     //弹出更新弹窗
-                    Logger.info(TAG, "Launcher update detected: $currentVersionCode -> ${data.code}, dialog shown to user")
+                    Logger.info(TAG, "Launcher update detected: $currentVersionName ($currentVersionCode) -> ${data.version} (${data.code}), dialog shown to user")
                     onUpgrade(data)
                 }
             }
         } else {
-            Logger.info(TAG, "Launcher is running the latest version: $currentVersionCode")
+            Logger.info(TAG, "Launcher is running the latest version: $currentVersionName ($currentVersionCode)")
             onIsLatest()
         }
     }

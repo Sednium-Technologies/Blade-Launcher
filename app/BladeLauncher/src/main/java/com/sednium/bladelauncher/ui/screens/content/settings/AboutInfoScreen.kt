@@ -53,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -107,6 +108,53 @@ fun AboutInfoScreen(
                     title = stringResource(R.string.about_launcher_title)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Blade Launcher Brand Hero Card with Saturn Logo Mark
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = itemColor(),
+                            shape = MaterialTheme.shapes.large,
+                            onClick = {}
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(52.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = Color(0xFF141414)
+                                ) {
+                                    Image(
+                                        modifier = Modifier
+                                            .padding(6.dp)
+                                            .fillMaxSize(),
+                                        painter = painterResource(R.drawable.img_blade_saturn),
+                                        contentDescription = "Blade Launcher Saturn Mark",
+                                        contentScale = ContentScale.Fit
+                                    )
+                                }
+
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        text = BuildKeys.LAUNCHER_NAME,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Engineered by Sednium",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
                         // Blade Launcher Fork Card
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_launcher),
@@ -133,7 +181,7 @@ fun AboutInfoScreen(
 
                         // Sednium Team Card
                         ButtonIconItem(
-                            icon = painterResource(R.drawable.img_launcher),
+                            icon = painterResource(R.drawable.img_blade_saturn),
                             title = stringResource(R.string.about_team_sednium_title),
                             text = stringResource(R.string.about_team_sednium_text),
                             button = {

@@ -28,12 +28,13 @@ class FileTest {
 
     @Test
     fun testCalculateFileSha1() {
-        val file = File("F:\\Download\\geckolib-forge-1.21.8-5.2.2.jar")
+        val file = File.createTempFile("test_sha1", ".bin")
+        file.deleteOnExit()
+        file.writeBytes(byteArrayOf(1, 2, 3, 4, 5))
         runBlocking(Dispatchers.IO) {
             val sha11 = calculateFileSha1(file)
-            println("sha1 1 = $sha11")
             val sha12 = DigestUtils.digestToString("SHA-1", file.toPath())
-            println("sha1 2 = $sha12")
+            assert(sha11 == sha12)
         }
     }
 }

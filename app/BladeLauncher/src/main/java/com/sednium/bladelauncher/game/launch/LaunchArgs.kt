@@ -34,6 +34,7 @@ import com.sednium.bladelauncher.game.plugin.natives.NativePluginManager
 import com.sednium.bladelauncher.game.version.download.artifactToPath
 import com.sednium.bladelauncher.game.version.download.filterLibrary
 import com.sednium.bladelauncher.game.version.download.getLibraryReplacement
+import com.sednium.bladelauncher.game.version.download.usesLwjglSdl
 import com.sednium.bladelauncher.game.version.installed.Version
 import com.sednium.bladelauncher.game.version.installed.VersionInfo
 import com.sednium.bladelauncher.game.version.installed.VersionInfoParser
@@ -224,7 +225,14 @@ class LaunchArgs(
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
+        val gameClassPath = generateLaunchClassPath(gameManifest)
+        val lwjglClassPath = getLWJGL3ClassPath()
+        val launchClassPath = if (gameManifest.libraries.usesLwjglSdl()) {
+            // SDL 绑定依赖同版本的 LWJGL Core，优先加载后再回退到启动器的 Android 兼容实现。
+            "$gameClassPath:$lwjglClassPath"
+        } else {
+            "$lwjglClassPath:$gameClassPath"
+        }
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
@@ -298,10 +306,11 @@ class LaunchArgs(
     private fun generateLibClasspath(gameManifest: GameManifest): Array<String> {
         val libSortFix = LibSortFix(version.getVersionInfo())
         val libs = LinkedHashMap<GameManifest.Library, String>()
+        val usesLwjglSdl = gameManifest.libraries.usesLwjglSdl()
 
         for (libItem in gameManifest.libraries) {
             if (!(GameManifest.Rule.checkRules(libItem.rules) && !libItem.isNative)) continue
-            val path = libItem.progressLibrary() ?: continue
+            val path = libItem.progressLibrary(allowLwjglSdlClasses = usesLwjglSdl) ?: continue
             with(libSortFix) {
                 libs.insertLib(libItem, getLibrariesHome() + "/" + path)
             }
@@ -314,8 +323,8 @@ class LaunchArgs(
     /**
      * @return 库相对路径
      */
-    private fun GameManifest.Library.progressLibrary(): String? {
-        if (filterLibrary()) return null
+    private fun GameManifest.Library.progressLibrary(allowLwjglSdlClasses: Boolean): String? {
+        if (filterLibrary(allowLwjglSdlClasses)) return null
 
         var path = artifactToPath(this)
 

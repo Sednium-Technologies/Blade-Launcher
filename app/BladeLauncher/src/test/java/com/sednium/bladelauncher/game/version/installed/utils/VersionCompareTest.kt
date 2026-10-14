@@ -33,8 +33,8 @@ class VersionCompareTest {
 
     @Test
     fun testCompareLegacySnapshots() {
-        assertTrue("20w14b".isBiggerVer("someRelease"))
-        assertTrue("20w14a".isLowerVer("someRelease"))
+        assertTrue("20w14b".isBiggerVer("20w14a"))
+        assertTrue("20w14a".isLowerVer("1.16"))
     }
 
     @Test
@@ -46,8 +46,8 @@ class VersionCompareTest {
 
     @Test
     fun testCompareNewSnapshots() {
-        assertTrue("25.4-snapshot-2".isBiggerVer("25.4"))
-        assertTrue("25.4-snapshot-1".isLowerVer("25.4"))
+        assertTrue("25.4-snapshot-2".isBiggerVer("25.4-snapshot-1"))
+        assertTrue("25.4-snapshot-1".isLowerVer("25.4-snapshot-2"))
     }
 
 
