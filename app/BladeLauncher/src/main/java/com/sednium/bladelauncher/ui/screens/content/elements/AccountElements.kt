@@ -848,7 +848,9 @@ fun LocalLoginDialog(
     var userName by rememberSaveable { mutableStateOf("") }
 
     /** 用户名是否无效 */
-    var isUserNameInvalid by rememberSaveable { mutableStateOf(false) }
+    val isUserNameInvalid = remember(userName) {
+        userName.isNotEmpty() && (userName.length <= 2 || userName.length > 16 || localNamePattern.matcher(userName).find())
+    }
 
     /** 用户编辑了UUID */
     var userEditedUUID by rememberSaveable { mutableStateOf(false) }
@@ -882,7 +884,25 @@ fun LocalLoginDialog(
 
     var editUUID by rememberSaveable { mutableStateOf(false) }
 
-    Dialog(onDismissRequest = onDismissRequest) {
+    val submitAction: () -> Unit = {
+        if (userName.isNotBlank()) {
+            val cleanUUID = runCatching {
+                if (userUUID.isNotEmpty()) {
+                    val uuid = accountUUID(userUUID)
+                    accountUUID(uuid)
+                } else {
+                    pendingUUID.takeIf { it.isNotEmpty() }?.let { accountUUID(accountUUID(it)) }
+                }
+            }.getOrNull() ?: pendingUUID.replace("-", "")
+
+            onConfirm(isUserNameInvalid, userName.trim(), cleanUUID)
+        }
+    }
+
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(decorFitsSystemWindows = false)
+    ) {
         BoxWithConstraints(
             modifier = Modifier.fillMaxHeight(),
             contentAlignment = Alignment.Center
@@ -938,14 +958,15 @@ fun LocalLoginDialog(
                                         .find() -> stringResource(R.string.account_supporting_username_invalid_illegal_characters)
 
                                     else -> ""
-                                }.also {
-                                    isUserNameInvalid = it.isNotEmpty()
                                 }
-                                if (isUserNameInvalid) {
+                                if (errorText.isNotEmpty()) {
                                     Text(text = errorText)
                                 }
                             },
                             singleLine = true,
+                            keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                                onDone = { submitAction() }
+                            ),
                             shape = MaterialTheme.shapes.large
                         )
 
@@ -1064,23 +1085,8 @@ fun LocalLoginDialog(
                         }
                         Button(
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                if (userName.isNotEmpty()) {
-                                    if (userUUID.isNotEmpty()) {
-                                        runCatching {
-                                            val uuid = accountUUID(userUUID)
-                                            val uuidString = accountUUID(uuid)
-                                            onConfirm(isUserNameInvalid, userName, uuidString)
-                                        }
-                                    } else {
-                                        //如果未填写UUID，则默认使用待定UUID
-                                        onConfirm(
-                                            isUserNameInvalid,
-                                            userName,
-                                            pendingUUID.takeIf { it.isNotEmpty() })
-                                    }
-                                }
-                            }
+                            enabled = userName.isNotBlank() && !isUserUUIDInvalid,
+                            onClick = submitAction
                         ) {
                             MarqueeText(text = stringResource(R.string.generic_confirm))
                         }
