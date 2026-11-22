@@ -42,6 +42,7 @@ import com.sednium.bladelauncher.game.plugin.driver.DriverPluginManager
 import com.sednium.bladelauncher.game.plugin.renderer.RendererPluginManager
 import com.sednium.bladelauncher.game.renderer.Renderers
 import com.sednium.bladelauncher.game.support.touch_controller.ControllerProxy
+import com.sednium.bladelauncher.game.tune.GameGraphicsAutoTuner
 import com.sednium.bladelauncher.game.version.installed.Version
 import com.sednium.bladelauncher.game.version.installed.VersionInfoParser
 import com.sednium.bladelauncher.game.version.installed.VersionsManager
@@ -121,6 +122,8 @@ class GameLauncher(
             javaArguments = customArgs.takeIf { it.isNotEmpty() } ?: "NONE",
             javaRuntime = javaRuntime,
         )
+
+        GameGraphicsAutoTuner.tuneSettings(version.getGameDir())
 
         return launchGame(
             screenSize = screenSize,
