@@ -19,6 +19,7 @@
 package com.sednium.bladelauncher.game.renderer
 
 import android.content.Context
+import com.sednium.bladelauncher.game.renderer.renderers.AutoRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.FreedrenoRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.GL4ESRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer
@@ -26,6 +27,7 @@ import com.sednium.bladelauncher.game.renderer.renderers.PanfrostRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.VirGLRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.VulkanZinkRenderer
 import com.sednium.bladelauncher.utils.device.Architecture
+import com.sednium.bladelauncher.utils.device.DeviceHardwareProfiler
 import com.sednium.bladelauncher.utils.device.checkVulkanSupport
 import com.sednium.bladelauncher.utils.logging.Logger
 
@@ -53,6 +55,7 @@ object Renderers {
         }
 
         addRenderers(
+            AutoRenderer,
             NGGL4ESRenderer,
             GL4ESRenderer,
             VulkanZinkRenderer,
@@ -123,14 +126,9 @@ object Renderers {
      */
     fun setCurrentRenderer(context: Context, uniqueIdentifier: String, retryToFirstOnFailure: Boolean = true) {
         if (!isInitialized) throw IllegalStateException("Uninitialized renderer!")
-        val compatibleRenderers = getCompatibleRenderers(context).second
-        currentRenderer = compatibleRenderers.find { it.getUniqueIdentifier() == uniqueIdentifier } ?: run {
-            if (retryToFirstOnFailure) {
-                val renderer = compatibleRenderers[0]
-                Logger.warning(TAG, "Incompatible renderer $uniqueIdentifier will be replaced with ${renderer.getUniqueIdentifier()} (${renderer.getRendererName()})")
-                renderer
-            } else null
-        }
+        val resolved = DeviceHardwareProfiler.resolveRenderer(context, uniqueIdentifier)
+        currentRenderer = resolved
+        Logger.info(TAG, "Current renderer set to: ${resolved.getRendererName()} (${resolved.getUniqueIdentifier()}) for requested: $uniqueIdentifier")
     }
 
     /**

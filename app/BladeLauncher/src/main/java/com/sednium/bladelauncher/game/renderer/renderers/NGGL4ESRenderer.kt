@@ -19,6 +19,8 @@
 package com.sednium.bladelauncher.game.renderer.renderers
 
 import com.sednium.bladelauncher.game.renderer.RendererInterface
+import com.sednium.bladelauncher.utils.device.DeviceHardwareProfiler
+import com.sednium.bladelauncher.utils.device.GpuFamily
 
 object NGGL4ESRenderer : RendererInterface {
     override fun getRendererId(): String = "opengles3"
@@ -34,6 +36,12 @@ object NGGL4ESRenderer : RendererInterface {
             put("LIBGL_ES", "3")
             put("LIBGL_NORMALIZE", "1")
             put("LIBGL_NOERROR", "1")
+            put("LIBGL_NOINTOVLHACK", "1")
+            put("LIBGL_MIPMAP", "3")
+            put("BLADE_USE_FLAT_CLOUDS", "1")
+            if (DeviceHardwareProfiler.getGpuFamily() == GpuFamily.POWERVR) {
+                put("LIBGL_SHRINK", "1")
+            }
         }
     }
 

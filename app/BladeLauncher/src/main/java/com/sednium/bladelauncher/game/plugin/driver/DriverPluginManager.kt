@@ -25,6 +25,7 @@ import com.sednium.bladelauncher.game.plugin.ApkPlugin
 import com.sednium.bladelauncher.game.plugin.ApkPluginManager
 import com.sednium.bladelauncher.game.plugin.cacheAppIcon
 import com.sednium.bladelauncher.setting.AllSettings
+import com.sednium.bladelauncher.utils.device.DeviceHardwareProfiler
 
 /**
  * FCL 驱动器插件
@@ -39,12 +40,27 @@ object DriverPluginManager: ApkPluginManager() {
     private lateinit var currentDriver: Driver
 
     @JvmStatic
-    fun setDriverById(driverId: String) {
-        currentDriver = driverList.find { it.id == driverId } ?: driverList[0]
+    @JvmOverloads
+    fun setDriverById(driverId: String, context: Context? = null) {
+        if (driverId.isNotEmpty() && driverId != "auto") {
+            val userDriver = driverList.find { it.id == driverId || it.name == driverId }
+            if (userDriver != null) {
+                currentDriver = userDriver
+                return
+            }
+        }
+        currentDriver = DeviceHardwareProfiler.resolveDriver(context, driverId)
     }
 
     @JvmStatic
-    fun getDriver(): Driver = currentDriver
+    fun getDriver(): Driver = if (::currentDriver.isInitialized) currentDriver else (driverList.find { it.id != "auto" } ?: driverList.firstOrNull() ?: Driver(
+        id = "default turnip",
+        appName = "",
+        appVersion = "",
+        name = "Turnip",
+        path = "",
+        isLauncher = true
+    ))
 
     /**
      * 初始化驱动器
@@ -54,7 +70,17 @@ object DriverPluginManager: ApkPluginManager() {
         val applicationInfo = context.applicationInfo
         driverList.add(
             Driver(
-                id = AllSettings.vulkanDriver.defaultValue,
+                id = "auto",
+                appName = "",
+                appVersion = "",
+                name = "Auto (Recommended)",
+                path = applicationInfo.nativeLibraryDir,
+                isLauncher = true
+            )
+        )
+        driverList.add(
+            Driver(
+                id = "default turnip",
                 appName = "",
                 appVersion = "",
                 name = "Turnip",
@@ -62,7 +88,7 @@ object DriverPluginManager: ApkPluginManager() {
                 isLauncher = true
             )
         )
-        setDriverById(AllSettings.vulkanDriver.getValue())
+        setDriverById(AllSettings.vulkanDriver.getValue(), context)
     }
 
     /**

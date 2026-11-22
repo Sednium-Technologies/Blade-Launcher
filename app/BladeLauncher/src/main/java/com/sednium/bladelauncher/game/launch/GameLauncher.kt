@@ -95,9 +95,7 @@ class GameLauncher(
     }
 
     override suspend fun launch(screenSize: IntSize): Int {
-        if (!Renderers.isCurrentRendererValid()) {
-            Renderers.setCurrentRenderer(activity, version.getRenderer())
-        }
+        Renderers.setCurrentRenderer(activity, version.getRenderer())
 
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
         val clientJar = manifest.inheritsFrom?.let { inheritsFrom ->
@@ -109,6 +107,10 @@ class GameLauncher(
             .setManifest(manifest)
             .setInheriting()
             .build()
+
+        // 探测版本 JSON 要求的 LWJGL 版本，决定组件与 natives
+        lwjglVersion = detectLwjglVersion(gameManifest)
+        Logger.info(TAG, "Detected LWJGL requirement version=$lwjglVersion, using component=${getLwjglVersionDir()}")
 
         CallbackBridge.nativeSetUseInputStackQueue(gameManifest.arguments != null)
 
@@ -161,7 +163,7 @@ class GameLauncher(
     override fun initEnv(screenSize: IntSize): MutableMap<String, String> {
         val envMap = super.initEnv(screenSize)
 
-        DriverPluginManager.setDriverById(version.getDriver())
+        DriverPluginManager.setDriverById(version.getDriver(), activity)
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver().path
 
         checkAndUsedJSPH(envMap, runtime)
