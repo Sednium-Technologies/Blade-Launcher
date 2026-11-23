@@ -1,3 +1,7 @@
+# Build artifacts & releases
+release_binaries/
+*.apk
+
 # Android / Gradle
 *.iml
 .gradle/
