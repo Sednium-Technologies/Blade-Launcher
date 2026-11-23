@@ -27,7 +27,7 @@ val defaultStorePassword = project.findProperty("default_store_password") as? St
 val defaultKeyPassword = project.findProperty("default_key_password") as? String ?: error("The \"default_key_password\" property is not set in gradle.properties.")
 val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? String
 
-val projectArch: String = System.getProperty("arch", "all")
+val projectArch: String = (project.findProperty("arch") as? String) ?: System.getProperty("arch", "all")
 
 fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? = null): String {
     val key = System.getenv(envKey)
@@ -112,7 +112,7 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
-            pickFirsts += listOf("**/libbytehook.so")
+            pickFirsts += listOf("**/libbytehook.so", "**/libc++_shared.so", "**/libSDL3.so")
         }
     }
 
@@ -155,6 +155,25 @@ androidComponents {
                             runtimeDir.listFiles()?.forEach {
                                 if (projectArch != "all" && it.name != "version" && !it.name.contains("universal") && it.name != "bin-$projectArch.tar.xz") {
                                     logger.lifecycle("[$tag] delete: $it : ${it.delete()}")
+                                }
+                            }
+                        }
+                        if (projectArch != "all") {
+                            val targetAbi = when (projectArch) {
+                                "arm" -> "armeabi-v7a"
+                                "arm64" -> "arm64-v8a"
+                                "x86" -> "x86"
+                                "x86_64" -> "x86_64"
+                                else -> projectArch
+                            }
+                            listOf("3.3.3", "3.4.1").forEach { ver ->
+                                val nativesDir = File(assetsDir, "app_runtime/lwjgl/$ver/natives")
+                                if (nativesDir.isDirectory) {
+                                    nativesDir.listFiles()?.forEach { abiDir ->
+                                        if (abiDir.isDirectory && abiDir.name != targetAbi) {
+                                            abiDir.deleteRecursively()
+                                        }
+                                    }
                                 }
                             }
                         }

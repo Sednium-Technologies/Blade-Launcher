@@ -82,6 +82,16 @@ object DriverPluginManager: ApkPluginManager() {
         )
         driverList.add(
             Driver(
+                id = "default",
+                appName = "",
+                appVersion = "",
+                name = "Default",
+                path = applicationInfo.nativeLibraryDir,
+                isLauncher = true
+            )
+        )
+        driverList.add(
+            Driver(
                 id = "default turnip",
                 appName = "",
                 appVersion = "",

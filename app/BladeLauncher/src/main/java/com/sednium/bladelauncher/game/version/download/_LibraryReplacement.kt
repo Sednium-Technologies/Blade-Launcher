@@ -67,31 +67,13 @@ fun getLibraryReplacement(libraryName: String, versionParts: List<String>): Libr
 }
 
 /**
- * 新版 SDL 绑定依赖与其同版本的 LWJGL Core。
- */
-fun List<GameManifest.Library>?.usesLwjglSdl(): Boolean = this?.any { library ->
-    library.name?.split(":")?.let { coordinates ->
-        coordinates.size >= 3 &&
-            coordinates[0] == "org.lwjgl" &&
-            coordinates[1] == "lwjgl-sdl"
-    } == true
-} ?: false
-
-/**
  * @return 是否需要被过滤
  */
-fun GameManifest.Library.filterLibrary(allowLwjglSdlClasses: Boolean = false): Boolean {
-    val libraryName = name ?: return false
-    val coordinates = libraryName.split(":")
-    val isLwjglSdlClasses = coordinates.size == 3 &&
-        coordinates[0] == "org.lwjgl" &&
-        (coordinates[1] == "lwjgl" || coordinates[1] == "lwjgl-sdl") &&
-        !isNative
-
+fun GameManifest.Library.filterLibrary(): Boolean {
     return when {
-        coordinates.firstOrNull() == "org.lwjgl" -> !(allowLwjglSdlClasses && isLwjglSdlClasses)
-        libraryName.contains("jinput-platform") -> true
-        libraryName.contains("twitch-platform") -> true
+        name?.contains("org.lwjgl") == true -> true
+        name?.contains("jinput-platform") == true -> true
+        name?.contains("twitch-platform") == true -> true
         else -> false
     }
 }

@@ -39,9 +39,6 @@ object NGGL4ESRenderer : RendererInterface {
             put("LIBGL_NOINTOVLHACK", "1")
             put("LIBGL_MIPMAP", "3")
             put("BLADE_USE_FLAT_CLOUDS", "1")
-            if (DeviceHardwareProfiler.getGpuFamily() == GpuFamily.POWERVR) {
-                put("LIBGL_SHRINK", "1")
-            }
         }
     }
 

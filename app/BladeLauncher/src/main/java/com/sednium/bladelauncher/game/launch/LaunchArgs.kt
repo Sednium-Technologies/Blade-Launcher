@@ -34,7 +34,6 @@ import com.sednium.bladelauncher.game.plugin.natives.NativePluginManager
 import com.sednium.bladelauncher.game.version.download.artifactToPath
 import com.sednium.bladelauncher.game.version.download.filterLibrary
 import com.sednium.bladelauncher.game.version.download.getLibraryReplacement
-import com.sednium.bladelauncher.game.version.download.usesLwjglSdl
 import com.sednium.bladelauncher.game.version.installed.Version
 import com.sednium.bladelauncher.game.version.installed.VersionInfo
 import com.sednium.bladelauncher.game.version.installed.VersionInfoParser
@@ -153,11 +152,29 @@ class LaunchArgs(
         }
     }
 
-    private fun getLWJGL3ClassPath(): String =
-        File(PathManager.DIR_COMPONENTS, "lwjgl3")
-            .listFiles { file -> file.name.endsWith(".jar") }
+    /**
+     * 组装 LWJGL 组件 classpath
+     * 版本 >= 3.4.1 -> 使用 3.4.1 组件；否则使用 3.3.3 组件。
+     * LWJGL2 时代（版本 <= 299）额外加入 lwjgl-lwjglx.jar 桥接层。
+     * lwjgl.jar 核心优先 -> merged-modules -> 其余模块。
+     */
+    private fun getLWJGL3ClassPath(lwjglVersion: Int): String {
+        val versionDir = lwjglVersionDir(lwjglVersion)
+        val dir = File(PathManager.DIR_COMPONENTS, "lwjgl/$versionDir")
+        val isLwjgl2 = lwjglVersion in 1..299
+        return dir.listFiles { file -> file.name.endsWith(".jar") }
+            ?.sortedBy { file -> lwjglJarOrder(file.name, versionDir, isLwjgl2) }
+            ?.filter { file -> isLwjgl2 || file.name != "lwjgl-lwjglx.jar" }
             ?.joinToString(":") { it.absolutePath }
             ?: ""
+    }
+
+    private fun lwjglJarOrder(name: String, versionDir: String, isLwjgl2: Boolean): Int = when (name) {
+        "lwjgl.jar" -> 0
+        "lwjgl-$versionDir-merged-modules.jar" -> 1
+        "lwjgl-lwjglx.jar" -> 3 // 桥接层放最后，仅 LWJGL2 使用
+        else -> 2
+    }
 
     private fun getJavaArgs(): List<String> {
         val argsList: MutableList<String> = ArrayList()
@@ -225,14 +242,9 @@ class LaunchArgs(
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val gameClassPath = generateLaunchClassPath(gameManifest)
-        val lwjglClassPath = getLWJGL3ClassPath()
-        val launchClassPath = if (gameManifest.libraries.usesLwjglSdl()) {
-            // SDL 绑定依赖同版本的 LWJGL Core，优先加载后再回退到启动器的 Android 兼容实现。
-            "$gameClassPath:$lwjglClassPath"
-        } else {
-            "$lwjglClassPath:$gameClassPath"
-        }
+        val lwjglVersion = detectLwjglVersion(gameManifest)
+        Logger.info(TAG, "Detected LWJGL requirement version=$lwjglVersion")
+        val launchClassPath = "${getLWJGL3ClassPath(lwjglVersion)}:${generateLaunchClassPath(gameManifest)}"
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
@@ -244,7 +256,7 @@ class LaunchArgs(
         fun Any.processJvmArg(): String? = (this as? String)?.let { argument ->
             if (argument.startsWith("-Djava.library.path=")) {
                 //26.2+ Mojang 更改到了具体的路径，需要手动重定向
-                return@let $$"-Djava.library.path=${natives_directory}"
+                return@let "-Djava.library.path=${PathManager.DIR_NATIVE_LIB}:$runtimeLibraryPath"
             }
             when {
                 argument.startsWith("-DignoreList=") -> {
@@ -306,11 +318,10 @@ class LaunchArgs(
     private fun generateLibClasspath(gameManifest: GameManifest): Array<String> {
         val libSortFix = LibSortFix(version.getVersionInfo())
         val libs = LinkedHashMap<GameManifest.Library, String>()
-        val usesLwjglSdl = gameManifest.libraries.usesLwjglSdl()
 
         for (libItem in gameManifest.libraries) {
             if (!(GameManifest.Rule.checkRules(libItem.rules) && !libItem.isNative)) continue
-            val path = libItem.progressLibrary(allowLwjglSdlClasses = usesLwjglSdl) ?: continue
+            val path = libItem.progressLibrary() ?: continue
             with(libSortFix) {
                 libs.insertLib(libItem, getLibrariesHome() + "/" + path)
             }
@@ -323,8 +334,8 @@ class LaunchArgs(
     /**
      * @return 库相对路径
      */
-    private fun GameManifest.Library.progressLibrary(allowLwjglSdlClasses: Boolean): String? {
-        if (filterLibrary(allowLwjglSdlClasses)) return null
+    private fun GameManifest.Library.progressLibrary(): String? {
+        if (filterLibrary()) return null
 
         var path = artifactToPath(this)
 
@@ -386,3 +397,32 @@ class LaunchArgs(
         return list.toTypedArray()
     }
 }
+
+/**
+ * 从版本清单中探测要求的 LWJGL 主版本
+ * 解析 `org.lwjgl:lwjgl:X.Y.Z` / `org.lwjgl.lwjgl:lwjgl:X.Y.Z` 坐标，
+ * 返回去掉句点后的整数（如 3.3.3→333、3.4.1→341、2.9.9→299）
+ * @return 无法确定时返回 0（默认按 LWJGL3 处理）
+ */
+fun detectLwjglVersion(manifest: GameManifest): Int {
+    for (lib in manifest.libraries) {
+        val name = lib.name ?: continue
+        val versionPrefix = when {
+            name.startsWith("org.lwjgl.lwjgl:lwjgl:") -> "org.lwjgl.lwjgl:lwjgl:"
+            name.startsWith("org.lwjgl:lwjgl:") -> "org.lwjgl:lwjgl:"
+            else -> continue
+        }
+        val intVersion = name.substring(versionPrefix.length)
+            .takeWhile { it.isDigit() || it == '.' }
+            .filter { it != '.' }
+            .toIntOrNull()
+        if (intVersion != null && intVersion in 200..999) return intVersion
+    }
+    return 0
+}
+
+/**
+ * LWJGL 版本整数 -> 组件目录名。
+ * 版本 >= 3.4.1 -> 3.4.1 组件；否则（含 LWJGL2 桥接场景）-> 3.3.3 组件
+ */
+fun lwjglVersionDir(lwjglVersion: Int): String = if (lwjglVersion >= 341) "3.4.1" else "3.3.3"

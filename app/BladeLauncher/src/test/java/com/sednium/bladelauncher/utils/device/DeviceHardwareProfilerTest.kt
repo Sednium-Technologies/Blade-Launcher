@@ -113,7 +113,7 @@ class DeviceHardwareProfilerTest {
         DeviceHardwareProfiler.setGpuForTesting(GpuFamily.POWERVR)
         val envPowerVR = com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer.getRendererEnv().value
         assertEquals("1", envPowerVR["BLADE_USE_FLAT_CLOUDS"])
-        assertEquals("1", envPowerVR["LIBGL_SHRINK"])
+        assertEquals("1", envPowerVR["LIBGL_NOERROR"])
 
         DeviceHardwareProfiler.setGpuForTesting(null)
     }
@@ -150,7 +150,6 @@ class DeviceHardwareProfilerTest {
 
         val env = com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer.getRendererEnv().value
         assertEquals("1", env["LIBGL_NOERROR"])
-        assertEquals("1", env["LIBGL_SHRINK"])
         assertEquals("1", env["BLADE_USE_FLAT_CLOUDS"])
 
         val driver = DeviceHardwareProfiler.resolveDriver(null, "auto")
