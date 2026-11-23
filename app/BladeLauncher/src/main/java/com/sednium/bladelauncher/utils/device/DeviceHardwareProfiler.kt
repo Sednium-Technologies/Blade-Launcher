@@ -26,6 +26,7 @@ object DeviceHardwareProfiler {
     private var cachedRendererString: String? = null
     private var cachedVendorString: String? = null
 
+    @Synchronized
     fun probeGpu() {
         if (cachedGpuFamily != null) return
 
