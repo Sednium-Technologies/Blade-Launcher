@@ -47,12 +47,16 @@ import com.sednium.bladelauncher.utils.network.openLink
 import com.sednium.bladelauncher.utils.string.throwableToString
 import com.sednium.bladelauncher.viewmodel.LogsUploadViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.annotation.Keep
 import kotlinx.parcelize.Parcelize
 import java.io.File
 
 private const val BUNDLE_EXIT_TYPE = "BUNDLE_EXIT_TYPE"
 private const val BUNDLE_THROWABLE = "BUNDLE_THROWABLE"
 private const val BUNDLE_JVM_CRASH = "BUNDLE_JVM_CRASH"
+private const val BUNDLE_JVM_CODE = "BUNDLE_JVM_CODE"
+private const val BUNDLE_JVM_IS_SIGNAL = "BUNDLE_JVM_IS_SIGNAL"
+private const val BUNDLE_JVM_LOG_PATH = "BUNDLE_JVM_LOG_PATH"
 private const val BUNDLE_CAN_RESTART = "BUNDLE_CAN_RESTART"
 private const val EXIT_JVM = "EXIT_JVM"
 private const val EXIT_LAUNCHER = "EXIT_LAUNCHER"
@@ -67,13 +71,17 @@ fun showExitMessage(
         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         putExtra(BUNDLE_EXIT_TYPE, EXIT_JVM)
+        putExtra(BUNDLE_JVM_CODE, code)
+        putExtra(BUNDLE_JVM_IS_SIGNAL, isSignal)
+        putExtra(BUNDLE_JVM_LOG_PATH, logPath)
         putExtra(BUNDLE_JVM_CRASH, JvmCrash(code, isSignal, logPath))
     }
     context.startActivity(intent)
 }
 
+@Keep
 @Parcelize
-private data class JvmCrash(
+data class JvmCrash(
     val code: Int,
     val isSignal: Boolean,
     val logPath: String
@@ -97,15 +105,19 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
 
         val errorMessage = when (exitType) {
             EXIT_JVM -> {
-                val jvmCrash = extras.getParcelableSafely(BUNDLE_JVM_CRASH, JvmCrash::class.java) ?: return runFinish()
-                val messageResId = if (jvmCrash.isSignal) R.string.crash_singnal_message else R.string.crash_exit_message
-                val message = getString(messageResId, jvmCrash.code)
+                val jvmCrash = extras.getParcelableSafely(BUNDLE_JVM_CRASH, JvmCrash::class.java)
+                val code = if (extras.containsKey(BUNDLE_JVM_CODE)) extras.getInt(BUNDLE_JVM_CODE) else (jvmCrash?.code ?: -1)
+                val isSignal = if (extras.containsKey(BUNDLE_JVM_IS_SIGNAL)) extras.getBoolean(BUNDLE_JVM_IS_SIGNAL) else (jvmCrash?.isSignal ?: false)
+                val logPath = extras.getString(BUNDLE_JVM_LOG_PATH) ?: jvmCrash?.logPath ?: return runFinish()
+
+                val messageResId = if (isSignal) R.string.crash_singnal_message else R.string.crash_exit_message
+                val message = getString(messageResId, code)
                 val messageBody = getString(R.string.crash_exit_note)
                 ErrorMessage(
                     message = message,
                     messageBody = messageBody,
                     crashType = CrashType.GAME_CRASH,
-                    logFile = File(jvmCrash.logPath).also { file ->
+                    logFile = File(logPath).also { file ->
                         //检查日志文件是否适合上传
                         viewModel.check(file)
                     }

@@ -21,6 +21,7 @@ package com.sednium.bladelauncher.ui.activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.os.Bundle
@@ -31,8 +32,11 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.annotation.Keep
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -81,13 +85,14 @@ import com.sednium.bladelauncher.game.launch.handler.GameHandler
 import com.sednium.bladelauncher.game.launch.handler.HandlerType
 import com.sednium.bladelauncher.game.launch.handler.JVMHandler
 import com.sednium.bladelauncher.game.multirt.RuntimesManager
+import com.sednium.bladelauncher.game.sdl.SdlBridge
 import com.sednium.bladelauncher.game.version.installed.Version
 import com.sednium.bladelauncher.setting.AllSettings
 import com.sednium.bladelauncher.terracotta.TerracottaVPNService
 import com.sednium.bladelauncher.ui.base.BaseAppCompatActivity
 import com.sednium.bladelauncher.ui.base.applyFullscreen
 import com.sednium.bladelauncher.ui.components.rememberBoxSize
-import com.sednium.bladelauncher.ui.control.input.HidableInputLayout
+import com.sednium.bladelauncher.ui.control.input.InGameChatBar
 import com.sednium.bladelauncher.ui.control.input.TextInputMode
 import com.sednium.bladelauncher.ui.screens.game.elements.OpenFolderLayer
 import com.sednium.bladelauncher.ui.screens.game.elements.OpenFolderOperation
@@ -105,6 +110,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.libsdl.app.SDLActivity
+import org.libsdl.app.SDLSurface
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
 import java.io.IOException
@@ -277,6 +284,10 @@ class VMViewModel : ViewModel() {
         sender.sendEnter()
     }
 
+    fun sendTab() {
+        sender.sendTab()
+    }
+
     /**
      * 仅处理特殊按键
      */
@@ -327,6 +338,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     private val vmViewModel: VMViewModel by viewModels()
 
     private var applySizeToSurface: ((width: Int, height: Int) -> Unit)? = null
+    private var gameSurfaceView: View? = null
 
     private inline fun <T> withHandler(block: AbstractHandler.() -> T): T {
         return vmViewModel.session.handler.block()
@@ -338,6 +350,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         //初始化物理鼠标连接检查器
         PhysicalMouseChecker.initChecker(this)
 
@@ -443,16 +456,15 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                     }
 
                     if (vmViewModel.textInputMode == TextInputMode.ENABLE) {
-                        //输入栏控制区域
-                        HidableInputLayout(
-                            onSend = { text ->
+                        InGameChatBar(
+                            onSendText = { text ->
                                 vmViewModel.sendInputText(text)
                             },
-                            onBackspace = {
-                                vmViewModel.sendBackspace()
-                            },
-                            onEnter = {
+                            onSendEnter = {
                                 vmViewModel.sendEnder()
+                            },
+                            onSendTab = {
+                                vmViewModel.sendTab()
                             },
                             onClose = {
                                 vmViewModel.textInputMode = TextInputMode.DISABLE
@@ -514,6 +526,17 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         vmViewModel.onConfigurationChanged()
     }
 
+    override fun setRequestedOrientation(requestedOrientation: Int) {
+        if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT ||
+            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT ||
+            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT ||
+            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT) {
+            super.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+            return
+        }
+        super.setRequestedOrientation(requestedOrientation)
+    }
+
     override fun onPostResume() {
         super.onPostResume()
         lifecycleScope.launch {
@@ -543,6 +566,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         applySizeToSurface?.invoke(windowWidth, windowHeight)
         ZLBridgeStates.onWindowChange()
         CallbackBridge.sendUpdateWindowSize(windowWidth, windowHeight)
+        if (SdlBridge.sdlEnabled) {
+            SDLActivity.getSDLSurface()?.let { surface ->
+                surface.surfaceChanged()
+                surface.nativeResize(windowWidth, windowHeight)
+            }
+        }
 
         return IntSize(windowWidth, windowHeight)
     }
@@ -550,6 +579,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     override fun onDestroy() {
         stopAllService()
         withHandler { onDestroy() }
+        SdlBridge.reset()
         super.onDestroy()
     }
 
@@ -614,9 +644,27 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         return true
     }
 
+    @Keep
+    fun messageboxShowMessageBox(
+        flags: Int,
+        title: String?,
+        message: String?,
+        buttonFlags: IntArray,
+        buttonIds: IntArray,
+        buttonTexts: Array<String?>,
+        colors: IntArray?
+    ): Int = SDLActivity.messageboxShowMessageBox(
+        this, flags, title, message, buttonFlags, buttonIds, buttonTexts, colors
+    )
+
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        val nativeSurface = Surface(surface)
+        SdlBridge.prepareSurface(this, nativeSurface, gameSurfaceView?.parent as? ViewGroup, surface)
+        CallbackBridge.setDirectGamepadEnableHandler {
+            LoggerBridge.append("BladeLauncher: Direct gamepad handler enabled")
+        }
         if (vmViewModel.isRunning) {
-            ZLBridge.setupBridgeWindow(Surface(surface))
+            ZLBridge.setupBridgeWindow(nativeSurface)
             return
         }
         vmViewModel.isRunning = true
@@ -636,9 +684,18 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+        if (withHandler { mIsSurfaceDestroyed }) return
+        refreshWindowSize(screenSize = IntSize(width, height))
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+        val nativeSurface = SDLSurface.getNativeSurface()
+        if (SdlBridge.beginSurfaceDestroy(surface, nativeSurface)) {
+            if (SdlBridge.sdlEnabled) {
+                SDLActivity.getSDLSurface()?.surfaceDestroyed()
+            }
+            SdlBridge.unregisterSurface(nativeSurface)
+        }
         withHandler { mIsSurfaceDestroyed = true }
         return true
     }
@@ -647,10 +704,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        if (withHandler { mIsSurfaceDestroyed }) return
+        refreshWindowSize(screenSize = IntSize(width, height))
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         val surface = holder.surface
+        SdlBridge.prepareSurface(this, surface, gameSurfaceView?.parent as? ViewGroup, holder)
         if (vmViewModel.isRunning) {
             ZLBridge.setupBridgeWindow(surface)
             return
@@ -672,6 +732,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
+        val nativeSurface = holder.surface
+        if (SdlBridge.beginSurfaceDestroy(holder, nativeSurface)) {
+            if (SdlBridge.sdlEnabled) {
+                SDLActivity.getSDLSurface()?.surfaceDestroyed(holder)
+            }
+            SdlBridge.unregisterSurface(nativeSurface)
+        }
         withHandler { mIsSurfaceDestroyed = true }
     }
 
@@ -710,11 +777,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                         IntOffset(0, -bottomPadding)
                     },
                 factory = { context ->
-                    if (AllSettings.useSurfaceView.getValue()) {
+                    val view = if (AllSettings.useSurfaceView.getValue()) {
                         //使用 SurfaceView 渲染
                         SurfaceView(context).apply {
                             holder.addCallback(this@VMActivity)
                         }.also { view ->
+                            gameSurfaceView = view
                             applySizeToSurface = { width, height ->
                                 view.holder.setFixedSize(width, height)
                             }
@@ -723,14 +791,27 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                         TextureView(context).apply {
                             isOpaque = true
                             alpha = 1.0f
+                            isFocusable = true
+                            isFocusableInTouchMode = true
 
                             surfaceTextureListener = this@VMActivity
-                        }.also { view ->
+                        }.also { texture ->
+                            gameSurfaceView = texture
                             applySizeToSurface = { width, height ->
-                                view.surfaceTexture?.setDefaultBufferSize(width, height)
+                                texture.surfaceTexture?.setDefaultBufferSize(width, height)
                             }
                         }
                     }
+                    SdlBridge.registerGameSurfaceView(view)
+                    view.setOnApplyWindowInsetsListener { v, insets ->
+                        if (SdlBridge.sdlEnabled && android.os.Build.VERSION.SDK_INT >= 30) {
+                            SDLActivity.notifyImeVisibilityChanged(
+                                insets.isVisible(android.view.WindowInsets.Type.ime())
+                            )
+                        }
+                        v.onApplyWindowInsets(insets)
+                    }
+                    view
                 }
             )
 

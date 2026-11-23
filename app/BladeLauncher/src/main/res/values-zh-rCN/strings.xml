@@ -1276,4 +1276,8 @@
     <string name="festivals_new_year">新年快乐！</string>
     <string name="festivals_april_fools">愚人节快乐！</string>
     <string name="festivals_christmas">圣诞节快乐！</string>
+
+    <!-- In-Game Chat Bar -->
+    <string name="game_chat_placeholder">输入消息或指令...</string>
+    <string name="game_chat_send">发送</string>
 </resources>

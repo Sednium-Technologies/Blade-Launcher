@@ -19,5 +19,33 @@
 package com.sednium.bladelauncher.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.sednium.bladelauncher.R
 
-val AppTypography = Typography()
+val urbanistFontFamily = FontFamily(
+    Font(R.font.urbanist_regular, FontWeight.Normal),
+    Font(R.font.urbanist_medium, FontWeight.Medium),
+    Font(R.font.urbanist_semibold, FontWeight.SemiBold),
+    Font(R.font.urbanist_bold, FontWeight.Bold)
+)
+
+private val defaultTypography = Typography()
+val AppTypography = Typography(
+    displayLarge = defaultTypography.displayLarge.copy(fontFamily = urbanistFontFamily),
+    displayMedium = defaultTypography.displayMedium.copy(fontFamily = urbanistFontFamily),
+    displaySmall = defaultTypography.displaySmall.copy(fontFamily = urbanistFontFamily),
+    headlineLarge = defaultTypography.headlineLarge.copy(fontFamily = urbanistFontFamily),
+    headlineMedium = defaultTypography.headlineMedium.copy(fontFamily = urbanistFontFamily),
+    headlineSmall = defaultTypography.headlineSmall.copy(fontFamily = urbanistFontFamily),
+    titleLarge = defaultTypography.titleLarge.copy(fontFamily = urbanistFontFamily),
+    titleMedium = defaultTypography.titleMedium.copy(fontFamily = urbanistFontFamily),
+    titleSmall = defaultTypography.titleSmall.copy(fontFamily = urbanistFontFamily),
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = urbanistFontFamily),
+    bodyMedium = defaultTypography.bodyMedium.copy(fontFamily = urbanistFontFamily),
+    bodySmall = defaultTypography.bodySmall.copy(fontFamily = urbanistFontFamily),
+    labelLarge = defaultTypography.labelLarge.copy(fontFamily = urbanistFontFamily),
+    labelMedium = defaultTypography.labelMedium.copy(fontFamily = urbanistFontFamily),
+    labelSmall = defaultTypography.labelSmall.copy(fontFamily = urbanistFontFamily)
+)

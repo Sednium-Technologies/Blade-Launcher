@@ -59,6 +59,19 @@ abstract class Launcher(
     lateinit var runtime: Runtime
         protected set
 
+    /** 当前启动版本要求的 LWJGL 版本（见 [detectLwjglVersion]），0 = 未探测/默认 */
+    protected var lwjglVersion: Int = 0
+
+    /** LWJGL 组件目录名（3.3.3 / 3.4.1） */
+    protected fun getLwjglVersionDir(): String = lwjglVersionDir(lwjglVersion)
+
+    /** 当前启动版本的 LWJGL natives 目录 */
+    protected val lwjglNativesDir: String
+        get() = File(
+            PathManager.DIR_COMPONENTS,
+            "lwjgl/${getLwjglVersionDir()}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
+        ).absolutePath
+
     private val runtimeHome: String by lazy {
         RuntimesManager.getRuntimeHome(runtime.name).absolutePath
     }
@@ -268,15 +281,30 @@ abstract class Launcher(
         args.add("-Xms${ramAllocationString}M")
         args.add("-Xmx${ramAllocationString}M")
 
-        // Force LWJGL to use the Freetype library intended for it, instead of using the one
-        // that we ship with Java (since it may be older than what's needed)
-        args.add("-Dorg.lwjgl.freetype.libname=${PathManager.DIR_NATIVE_LIB}/libfreetype.so")
+        // that we ship with Java (since it may be older than what's needed).
+        // Prefer the per-version LWJGL natives component so 3.4.x games get the matching freetype.
+        val freetypeLib = File(lwjglNativesDir, "libfreetype.so")
+        args.add("-Dorg.lwjgl.freetype.libname=" + if (freetypeLib.exists()) freetypeLib.absolutePath else "${PathManager.DIR_NATIVE_LIB}/libfreetype.so")
 
         // Our spirv-cross is compiled shared, so it gets named shared.
         args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
 
+        args.purgeArg("-Djava.library.path")
+        args.add("-Djava.library.path=${PathManager.DIR_NATIVE_LIB}:${getRuntimeLibraryPath()}")
+
+        args.purgeArg("-Djna.boot.library.path")
+        args.add("-Djna.boot.library.path=${PathManager.DIR_NATIVE_LIB}")
+
+        args.purgeArg("-Djna.nounpack")
+        args.add("-Djna.nounpack=true")
+
+        args.purgeArg("-Djna.nosys")
+        args.add("-Djna.nosys=false")
+
         // We don't have jemalloc for our LWJGL so set the allocator to system to avoid error logs
         args.add("-Dorg.lwjgl.system.allocator=system")
+        args.purgeArg("-Dorg.lwjgl.system.checkVersion")
+        args.add("-Dorg.lwjgl.system.checkVersion=false")
 
         // Some phones are not using the right number of cores, fix that
         args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
@@ -331,6 +359,7 @@ abstract class Launcher(
             add("/system_ext/$libName")
             add(LibPath.JNA.absolutePath)
             PathManager.DIR_RUNTIME_MOD?.absolutePath?.let { add(it) }
+            add(lwjglNativesDir)
             add(PathManager.DIR_NATIVE_LIB)
         }
         return paths.joinToString(":")
@@ -339,6 +368,8 @@ abstract class Launcher(
     protected fun getLibraryPath(): String {
         val libDirName = if (is64BitsDevice) "lib64" else "lib"
         val path = listOfNotNull(
+            // per-version LWJGL natives 优先，避免 APK 内旧版 native 抢占
+            lwjglNativesDir,
             "/system/$libDirName",
             "/vendor/$libDirName",
             "/vendor/$libDirName/hw",

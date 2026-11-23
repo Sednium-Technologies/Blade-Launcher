@@ -12,6 +12,9 @@
     @androidx.room.* <methods>;
 }
 
+# SDL
+-keep class org.libsdl.app.** { *; }
+
 # Launcher
 -keep class org.lwjgl.glfw.CallbackBridge {
     *;
@@ -52,3 +55,9 @@
 
 # Libraries
 -keep class com.github.steveice10.opennbt.** { *; }
+
+# Parcelable preservation
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final android.os.Parcelable$Creator CREATOR;
+}
+-keep class com.sednium.bladelauncher.ui.activities.JvmCrash { *; }

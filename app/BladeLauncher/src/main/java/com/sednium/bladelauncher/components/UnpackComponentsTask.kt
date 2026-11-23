@@ -24,6 +24,6 @@ import com.sednium.bladelauncher.path.PathManager
 class UnpackComponentsTask(context: Context, val component: Components) : UnpackSingleTask(
     context = context,
     rootDir = PathManager.DIR_COMPONENTS,
-    assetsDirName = "components",
+    assetsDirName = component.assetsDir,
     fileDirName = component.component
 )

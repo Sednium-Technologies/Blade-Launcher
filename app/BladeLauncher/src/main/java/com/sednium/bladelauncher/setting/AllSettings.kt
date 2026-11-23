@@ -49,12 +49,12 @@ object AllSettings : SettingsRegistry() {
     /**
      * 全局渲染器
      */
-    val renderer = stringSetting("renderer", "")
+    val renderer = stringSetting("renderer", "auto")
 
     /**
      * Vulkan 驱动器
      */
-    val vulkanDriver = stringSetting("vulkanDriver", "default turnip")
+    val vulkanDriver = stringSetting("vulkanDriver", "auto")
 
     /**
      * 图形 API（Minecraft 26.2+）
@@ -645,4 +645,5 @@ object AllSettings : SettingsRegistry() {
      * 启动 MC26.2+ 时，自动检查 Vulkan
      */
     val autoVulkanChecker = boolSetting("autoVulkanChecker", true)
+    val sdlAutoShowIme = boolSetting("sdlAutoShowIme", true)
 }

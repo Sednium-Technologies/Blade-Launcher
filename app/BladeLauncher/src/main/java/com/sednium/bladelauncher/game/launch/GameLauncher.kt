@@ -42,6 +42,7 @@ import com.sednium.bladelauncher.game.plugin.driver.DriverPluginManager
 import com.sednium.bladelauncher.game.plugin.renderer.RendererPluginManager
 import com.sednium.bladelauncher.game.renderer.Renderers
 import com.sednium.bladelauncher.game.support.touch_controller.ControllerProxy
+import com.sednium.bladelauncher.game.tune.GameGraphicsAutoTuner
 import com.sednium.bladelauncher.game.version.installed.Version
 import com.sednium.bladelauncher.game.version.installed.VersionInfoParser
 import com.sednium.bladelauncher.game.version.installed.VersionsManager
@@ -95,9 +96,7 @@ class GameLauncher(
     }
 
     override suspend fun launch(screenSize: IntSize): Int {
-        if (!Renderers.isCurrentRendererValid()) {
-            Renderers.setCurrentRenderer(activity, version.getRenderer())
-        }
+        Renderers.setCurrentRenderer(activity, version.getRenderer())
 
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
         val clientJar = manifest.inheritsFrom?.let { inheritsFrom ->
@@ -110,6 +109,10 @@ class GameLauncher(
             .setInheriting()
             .build()
 
+        // 探测版本 JSON 要求的 LWJGL 版本，决定组件与 natives
+        lwjglVersion = detectLwjglVersion(gameManifest)
+        Logger.info(TAG, "Detected LWJGL requirement version=$lwjglVersion, using component=${getLwjglVersionDir()}")
+
         CallbackBridge.nativeSetUseInputStackQueue(gameManifest.arguments != null)
 
         val customArgs = version.getJvmArgs().takeIf { it.isNotBlank() } ?: AllSettings.jvmArgs.getValue()
@@ -119,6 +122,8 @@ class GameLauncher(
             javaArguments = customArgs.takeIf { it.isNotEmpty() } ?: "NONE",
             javaRuntime = javaRuntime,
         )
+
+        GameGraphicsAutoTuner.tuneSettings(version.getGameDir())
 
         return launchGame(
             screenSize = screenSize,
@@ -161,7 +166,7 @@ class GameLauncher(
     override fun initEnv(screenSize: IntSize): MutableMap<String, String> {
         val envMap = super.initEnv(screenSize)
 
-        DriverPluginManager.setDriverById(version.getDriver())
+        DriverPluginManager.setDriverById(version.getDriver(), activity)
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver().path
 
         checkAndUsedJSPH(envMap, runtime)
@@ -266,6 +271,7 @@ class GameLauncher(
         renderer.getRendererSummary()?.let { summary ->
             append("▷ Renderer Summary: $summary")
         }
+        append("▷ Driver: ${DriverPluginManager.getDriver().name}")
         append("▷ Selected Minecraft version: ${version.getVersionName()}")
         append("▷ Minecraft Info: $mcInfo")
         append("▷ Game Path: ${version.getGameDir().absolutePath} (Isolation: ${version.isIsolation()})")
@@ -364,7 +370,9 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
         envMap["LIBGL_NORMALIZE"] = "1"
     }
 
-    envMap += renderer.getRendererEnv().value
+    val rendererEnv = renderer.getRendererEnv().value
+    envMap += rendererEnv
+    Logger.info(TAG, "Configured renderer environment: $rendererEnv")
 
     renderer.getRendererEGL()?.let { eglName ->
         envMap["POJAVEXEC_EGL"] = eglName

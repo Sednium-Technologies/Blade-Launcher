@@ -52,7 +52,9 @@ object Logger : CoroutineScope {
     private val isInitialized = AtomicBoolean(false)
     private val channel = Channel<LogMessage>(Channel.UNLIMITED)
 
-    private val logRetentionDays = AllSettings.launcherLogRetentionDays.getValue()
+    private val logRetentionDays: Int by lazy {
+        runCatching { AllSettings.launcherLogRetentionDays.getValue() }.getOrDefault(7)
+    }
 
     private var currentLogFile: File? = null
     private var logWriter: PrintWriter? = null
