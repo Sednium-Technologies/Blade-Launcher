@@ -114,13 +114,14 @@ class UpgradeCheckerTest {
     }
 
     /**
-     * Genuine branch test 1: Current version "2.4.7" vs remote release also tagged "2.4.7".
+     * Genuine branch test 1: Current version vs remote release with matching tag.
      * Expected outcome: Already running latest version (onIsLatest called, onUpgrade NOT called).
      */
     @Test
     fun testBranch_AlreadyLatestVersion() = runBlocking {
         val vm = LauncherUpgradeViewModel()
-        val release = GLOBAL_JSON.decodeFromString(GithubReleaseApi.serializer(), sampleReleaseJson)
+        val currentReleaseJson = sampleReleaseJson.replace("\"v2.4.7\"", "\"v${BuildConfig.VERSION_NAME}\"")
+        val release = GLOBAL_JSON.decodeFromString(GithubReleaseApi.serializer(), currentReleaseJson)
         val remoteData = release.toRemoteData()
 
         var isLatestCalled = false
@@ -134,27 +135,27 @@ class UpgradeCheckerTest {
             onIsLatest = { isLatestCalled = true }
         )
 
-        assertTrue("Expected onIsLatest to be called for matching version 2.4.7", isLatestCalled)
-        assertFalse("Expected onUpgrade NOT to be called when running 2.4.7", upgradeCalled)
+        assertTrue("Expected onIsLatest to be called for matching version ${BuildConfig.VERSION_NAME}", isLatestCalled)
+        assertFalse("Expected onUpgrade NOT to be called when running matching version", upgradeCalled)
     }
 
     /**
-     * Genuine branch test 2: Current version "2.4.7" vs simulated newer release "2.4.8".
+     * Genuine branch test 2: Current version vs simulated newer release "99.0.0".
      * Expected outcome: Upgrade detected (onUpgrade called with data, onIsLatest NOT called).
      */
     @Test
     fun testBranch_SimulatedNewerVersionDetected() = runBlocking {
         val vm = LauncherUpgradeViewModel()
         val newerRelease = GithubReleaseApi(
-            tagName = "v2.4.8",
-            name = "Blade Launcher v2.4.8",
-            body = "## What's new in v2.4.8\n* New optimization features",
+            tagName = "v99.0.0",
+            name = "Blade Launcher v99.0.0",
+            body = "## What's new in v99.0.0\n* New optimization features",
             publishedAt = "2026-10-01T12:00:00Z",
             assets = listOf(
                 GithubReleaseApi.Asset(
-                    name = "BladeLauncher-2.4.8.apk",
+                    name = "BladeLauncher-99.0.0.apk",
                     size = 310000000L,
-                    browserDownloadUrl = "https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v2.4.8/BladeLauncher-2.4.8.apk"
+                    browserDownloadUrl = "https://github.com/Sednium-Technologies/Blade-Launcher/releases/download/v99.0.0/BladeLauncher-99.0.0.apk"
                 )
             )
         )
@@ -175,12 +176,12 @@ class UpgradeCheckerTest {
             onIsLatest = { isLatestCalled = true }
         )
 
-        assertTrue("Expected onUpgrade to be called for newer version 2.4.8", upgradeCalled)
-        assertFalse("Expected onIsLatest NOT to be called for newer version 2.4.8", isLatestCalled)
+        assertTrue("Expected onUpgrade to be called for newer version 99.0.0", upgradeCalled)
+        assertFalse("Expected onIsLatest NOT to be called for newer version 99.0.0", isLatestCalled)
         assertNotNull(receivedData)
-        assertEquals("2.4.8", receivedData?.version)
+        assertEquals("99.0.0", receivedData?.version)
         assertEquals(1, receivedData?.files?.size)
-        assertEquals("BladeLauncher-2.4.8.apk", receivedData?.files?.first()?.fileName)
+        assertEquals("BladeLauncher-99.0.0.apk", receivedData?.files?.first()?.fileName)
     }
 
     /**
@@ -190,8 +191,8 @@ class UpgradeCheckerTest {
     fun testBranch_UserIgnoredVersion() = runBlocking {
         val vm = LauncherUpgradeViewModel()
         val newerRelease = GithubReleaseApi(
-            tagName = "v2.4.8",
-            name = "Blade Launcher v2.4.8",
+            tagName = "v99.0.0",
+            name = "Blade Launcher v99.0.0",
             body = "Release notes",
             assets = emptyList()
         )
