@@ -271,6 +271,7 @@ class GameLauncher(
         renderer.getRendererSummary()?.let { summary ->
             append("▷ Renderer Summary: $summary")
         }
+        append("▷ Driver: ${DriverPluginManager.getDriver().name}")
         append("▷ Selected Minecraft version: ${version.getVersionName()}")
         append("▷ Minecraft Info: $mcInfo")
         append("▷ Game Path: ${version.getGameDir().absolutePath} (Isolation: ${version.isIsolation()})")
@@ -369,7 +370,9 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
         envMap["LIBGL_NORMALIZE"] = "1"
     }
 
-    envMap += renderer.getRendererEnv().value
+    val rendererEnv = renderer.getRendererEnv().value
+    envMap += rendererEnv
+    Logger.info(TAG, "Configured renderer environment: $rendererEnv")
 
     renderer.getRendererEGL()?.let { eglName ->
         envMap["POJAVEXEC_EGL"] = eglName

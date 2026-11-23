@@ -139,4 +139,82 @@ class DeviceHardwareProfilerTest {
 
         DeviceHardwareProfiler.setGpuForTesting(null)
     }
+
+    @Test
+    fun testPowerVRRogueGE8320Profile() {
+        val family = DeviceHardwareProfiler.parseGpuFamily("Imagination Technologies", "PowerVR Rogue GE8320")
+        assertEquals(GpuFamily.POWERVR, family)
+
+        DeviceHardwareProfiler.setGpuForTesting(family)
+        assertEquals(4, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        val env = com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer.getRendererEnv().value
+        assertEquals("1", env["LIBGL_NOERROR"])
+        assertEquals("1", env["LIBGL_SHRINK"])
+        assertEquals("1", env["BLADE_USE_FLAT_CLOUDS"])
+
+        val driver = DeviceHardwareProfiler.resolveDriver(null, "auto")
+        assertNotNull(driver)
+        assertEquals(false, driver.name.contains("Turnip", ignoreCase = true))
+
+        DeviceHardwareProfiler.setGpuForTesting(null)
+    }
+
+    @Test
+    fun testMaliG68MC4Profile() {
+        val family = DeviceHardwareProfiler.parseGpuFamily("ARM", "Mali-G68 MC4")
+        assertEquals(GpuFamily.ARM_MALI, family)
+
+        DeviceHardwareProfiler.setGpuForTesting(family)
+        assertEquals(6, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        val env = com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer.getRendererEnv().value
+        assertEquals("1", env["LIBGL_NOERROR"])
+        assertEquals("1", env["BLADE_USE_FLAT_CLOUDS"])
+        assertEquals(null, env["LIBGL_SHRINK"])
+
+        val driver = DeviceHardwareProfiler.resolveDriver(null, "auto")
+        assertNotNull(driver)
+        assertEquals(false, driver.name.contains("Turnip", ignoreCase = true))
+
+        DeviceHardwareProfiler.setGpuForTesting(null)
+    }
+
+    @Test
+    fun testAdreno740Profile() {
+        val family = DeviceHardwareProfiler.parseGpuFamily("Qualcomm", "Adreno (TM) 740")
+        assertEquals(GpuFamily.QUALCOMM_ADRENO, family)
+
+        DeviceHardwareProfiler.setGpuForTesting(family)
+        assertEquals(10, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        val zinkEnv = com.sednium.bladelauncher.game.renderer.renderers.VulkanZinkRenderer.getRendererEnv().value
+        assertEquals(null, zinkEnv["BLADE_USE_FLAT_CLOUDS"])
+
+        val driver = DeviceHardwareProfiler.resolveDriver(null, "auto")
+        assertEquals("Turnip", driver.name)
+
+        DeviceHardwareProfiler.setGpuForTesting(null)
+    }
+
+    @Test
+    fun testDebugGpuOverrideSystemProperty() {
+        System.setProperty("blade.gpu_override", "Imagination Technologies;PowerVR Rogue GE8320")
+        DeviceHardwareProfiler.clearCache()
+        assertEquals(GpuFamily.POWERVR, DeviceHardwareProfiler.getGpuFamily())
+        assertEquals(4, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        System.setProperty("blade.gpu_override", "ARM;Mali-G68 MC4")
+        DeviceHardwareProfiler.clearCache()
+        assertEquals(GpuFamily.ARM_MALI, DeviceHardwareProfiler.getGpuFamily())
+        assertEquals(6, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        System.setProperty("blade.gpu_override", "Qualcomm;Adreno (TM) 740")
+        DeviceHardwareProfiler.clearCache()
+        assertEquals(GpuFamily.QUALCOMM_ADRENO, DeviceHardwareProfiler.getGpuFamily())
+        assertEquals(10, DeviceHardwareProfiler.getOptimalChunkDistance())
+
+        System.clearProperty("blade.gpu_override")
+        DeviceHardwareProfiler.clearCache()
+    }
 }

@@ -11,6 +11,7 @@ import com.sednium.bladelauncher.game.renderer.Renderers
 import com.sednium.bladelauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.sednium.bladelauncher.game.renderer.renderers.VulkanZinkRenderer
 import com.sednium.bladelauncher.utils.logging.Logger
+import java.io.File
 
 enum class GpuFamily {
     QUALCOMM_ADRENO,
@@ -22,12 +23,58 @@ enum class GpuFamily {
 
 object DeviceHardwareProfiler {
     private const val TAG = "HardwareProfiler"
+    private const val OVERRIDE_FILE_PATH = "/sdcard/debug_gpu_override.txt"
     private var cachedGpuFamily: GpuFamily? = null
     private var cachedRendererString: String? = null
     private var cachedVendorString: String? = null
+    private var isTestingOverride = false
+    private var isFileOverrideActive = false
+
+    private fun checkDebugOverride(): Boolean {
+        if (isTestingOverride) return true
+
+        val prop = System.getProperty("blade.gpu_override")?.trim()
+        if (!prop.isNullOrEmpty()) {
+            val parts = prop.split(";", limit = 2)
+            val vendor = if (parts.size > 1) parts[0].trim() else ""
+            val renderer = if (parts.size > 1) parts[1].trim() else parts[0].trim()
+            cachedVendorString = vendor
+            cachedRendererString = renderer
+            cachedGpuFamily = parseGpuFamily(vendor, renderer)
+            return true
+        }
+
+        val file = File(OVERRIDE_FILE_PATH)
+        if (file.exists()) {
+            try {
+                val text = file.readText().trim()
+                if (text.isNotEmpty()) {
+                    val parts = text.split(";", limit = 2)
+                    val vendor = if (parts.size > 1) parts[0].trim() else ""
+                    val renderer = if (parts.size > 1) parts[1].trim() else parts[0].trim()
+                    cachedVendorString = vendor
+                    cachedRendererString = renderer
+                    cachedGpuFamily = parseGpuFamily(vendor, renderer)
+                    isFileOverrideActive = true
+                    Logger.info(TAG, "Debug GPU Override active ($OVERRIDE_FILE_PATH)! Detected GPU Family: $cachedGpuFamily (Vendor: $vendor, Renderer: $renderer)")
+                    return true
+                }
+            } catch (e: Throwable) {
+                Logger.warning(TAG, "Failed to read debug GPU override file: ${e.message}")
+            }
+        } else if (isFileOverrideActive) {
+            cachedGpuFamily = null
+            cachedVendorString = null
+            cachedRendererString = null
+            isFileOverrideActive = false
+            Logger.info(TAG, "Debug GPU Override removed; resetting to hardware probing")
+        }
+        return false
+    }
 
     @Synchronized
     fun probeGpu() {
+        if (checkDebugOverride()) return
         if (cachedGpuFamily != null) return
 
         try {
@@ -113,9 +160,21 @@ object DeviceHardwareProfiler {
         cachedGpuFamily = family
         cachedVendorString = vendor
         cachedRendererString = renderer
+        isTestingOverride = (family != null)
+    }
+
+    fun clearCache() {
+        cachedGpuFamily = null
+        cachedVendorString = null
+        cachedRendererString = null
+        isTestingOverride = false
+        isFileOverrideActive = false
     }
 
     fun getGpuFamily(): GpuFamily {
+        if (checkDebugOverride()) {
+            return cachedGpuFamily ?: GpuFamily.UNKNOWN
+        }
         if (cachedGpuFamily == null) {
             probeGpu()
         }
@@ -152,14 +211,25 @@ object DeviceHardwareProfiler {
             val userDriver = candidates.find { it.id == requested || it.name == requested }
                 ?: driverList.find { it.id == requested || it.name == requested }
             if (userDriver != null) return userDriver
+            if (candidates.isEmpty()) {
+                return Driver(
+                    id = requested,
+                    appName = "",
+                    appVersion = "",
+                    name = requested,
+                    path = "",
+                    isLauncher = true
+                )
+            }
         }
 
         if (candidates.isEmpty()) {
+            val isAdreno = (getGpuFamily() == GpuFamily.QUALCOMM_ADRENO)
             return Driver(
-                id = "default turnip",
+                id = if (isAdreno) "default turnip" else "default",
                 appName = "",
                 appVersion = "",
-                name = "Turnip",
+                name = if (isAdreno) "Turnip" else "Default",
                 path = "",
                 isLauncher = true
             )

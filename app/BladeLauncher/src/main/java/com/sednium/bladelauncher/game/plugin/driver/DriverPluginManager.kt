@@ -46,10 +46,12 @@ object DriverPluginManager: ApkPluginManager() {
             val userDriver = driverList.find { it.id == driverId || it.name == driverId }
             if (userDriver != null) {
                 currentDriver = userDriver
+                com.sednium.bladelauncher.utils.logging.Logger.info("DriverPluginManager", "Current driver set to: ${currentDriver.name} (id: ${currentDriver.id}) for requested: $driverId")
                 return
             }
         }
         currentDriver = DeviceHardwareProfiler.resolveDriver(context, driverId)
+        com.sednium.bladelauncher.utils.logging.Logger.info("DriverPluginManager", "Current driver set to: ${currentDriver.name} (id: ${currentDriver.id}) for requested: $driverId")
     }
 
     @JvmStatic

@@ -70,6 +70,9 @@ object GameGraphicsAutoTuner {
                         content + "\n" + renderDistanceLine + "\n"
                     }
                     modified = true
+                    Logger.info(TAG, "Auto-tuned renderDistance: $optimalChunk for GPU: ${DeviceHardwareProfiler.getGpuFamily()}")
+                } else {
+                    Logger.info(TAG, "Preserving existing user renderDistance setting in options.txt")
                 }
 
                 if (modified) {
