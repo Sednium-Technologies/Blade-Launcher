@@ -138,9 +138,7 @@ object DeviceHardwareProfiler {
             }
             gpu == GpuFamily.POWERVR -> NGGL4ESRenderer
             gpu == GpuFamily.ARM_MALI -> NGGL4ESRenderer
-            gpu == GpuFamily.INTEL_MESA && hasVulkan -> {
-                candidates.find { it is VulkanZinkRenderer } ?: NGGL4ESRenderer
-            }
+            gpu == GpuFamily.INTEL_MESA -> NGGL4ESRenderer
             else -> candidates.firstOrNull() ?: NGGL4ESRenderer
         }
     }
