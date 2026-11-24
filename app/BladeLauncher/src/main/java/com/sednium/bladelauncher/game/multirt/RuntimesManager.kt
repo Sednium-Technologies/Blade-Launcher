@@ -51,9 +51,62 @@ private const val TAG = "RuntimesManager"
 object RuntimesManager {
     private val cache = ConcurrentHashMap<String, Runtime>()
 
-    private val RUNTIME_FOLDER = PathManager.DIR_MULTIRT
+    val RUNTIME_FOLDER: File
+        get() = runCatching { PathManager.DIR_MULTIRT }.getOrElse {
+            File(System.getProperty("java.io.tmpdir"), "bladelauncher_runtimes").apply { mkdirs() }
+        }
     private const val JAVA_VERSION_STR: String = "JAVA_VERSION=\""
     private const val OS_ARCH_STR: String = "OS_ARCH=\""
+
+    fun getRuntimeDir(name: String): File = RUNTIME_FOLDER.child(name)
+
+    fun isRuntimeComplete(name: String): Boolean {
+        val dest = RUNTIME_FOLDER.child(name)
+        if (!dest.exists() || !dest.isDirectory) return false
+        val releaseFile = File(dest, "release")
+        val javaBin = File(dest, "bin/java")
+        val libDir = File(dest, "lib")
+        if (!releaseFile.exists() && !javaBin.exists()) return false
+        if (!libDir.exists() && !javaBin.exists()) return false
+
+        val runtime = loadRuntime(name)
+        if (runtime.arch.isNullOrBlank()) return false
+        if (runtime.versionString.isNullOrBlank() && !javaBin.exists()) return false
+        return true
+    }
+
+    fun flattenNestedRuntimeDir(dest: File) {
+        if (!dest.exists() || !dest.isDirectory) return
+        val releaseFile = File(dest, "release")
+        val binDir = File(dest, "bin")
+        if (releaseFile.exists() && binDir.exists()) {
+            return
+        }
+
+        val candidates = dest.listFiles()?.filter { it.isDirectory } ?: return
+        val nestedJreDir = candidates.firstOrNull { sub ->
+            File(sub, "release").exists() || File(sub, "bin/java").exists() || File(sub, "bin").exists()
+        } ?: return
+
+        Logger.info(TAG, "Flattening nested runtime directory: ${nestedJreDir.name} -> ${dest.name}")
+        val files = nestedJreDir.listFiles() ?: return
+        for (file in files) {
+            val target = File(dest, file.name)
+            if (target.exists()) {
+                if (target.isDirectory) FileUtils.deleteDirectory(target) else target.delete()
+            }
+            if (!file.renameTo(target)) {
+                if (file.isDirectory) {
+                    FileUtils.copyDirectory(file, target)
+                    FileUtils.deleteDirectory(file)
+                } else {
+                    FileUtils.copyFile(file, target)
+                    file.delete()
+                }
+            }
+        }
+        nestedJreDir.delete()
+    }
 
     fun getRuntimes(forceLoad: Boolean = false): List<Runtime> {
         if (!RUNTIME_FOLDER.exists()) {
@@ -87,16 +140,32 @@ object RuntimesManager {
     fun loadRuntime(name: String, forceLoad: Boolean = false): Runtime {
         return cache[name]?.takeIf { !forceLoad } ?: run {
             val runtimeDir = File(RUNTIME_FOLDER, name)
+            if (!runtimeDir.exists()) {
+                val fallbackArch = Architecture.resolveFallbackJavaArch()
+                return Runtime(
+                    name = name,
+                    versionString = null,
+                    arch = fallbackArch,
+                    javaVersion = 0,
+                    isProvidedByLauncher = Jre.entries.any { it.jreName == name },
+                    isJDK8 = false
+                ).also { cache[name] = it }
+            }
+
+            flattenNestedRuntimeDir(runtimeDir)
+
             val releaseFile = File(runtimeDir, "release")
             val fallbackArch = Architecture.resolveFallbackJavaArch()
 
             if (!releaseFile.exists()) {
                 val isJdk8 = isJDK8(runtimeDir.absolutePath)
+                val javaBin = File(runtimeDir, "bin/java")
+                val hasBinaries = javaBin.exists()
                 return Runtime(
                     name = name,
-                    versionString = if (name.contains("8")) "1.8.0" else null,
+                    versionString = if (hasBinaries && (name.contains("8") || isJdk8)) "1.8.0" else null,
                     arch = fallbackArch,
-                    javaVersion = if (name.contains("8")) 8 else 0,
+                    javaVersion = if (hasBinaries && (name.contains("8") || isJdk8)) 8 else 0,
                     isProvidedByLauncher = Jre.entries.any { it.jreName == name },
                     isJDK8 = isJdk8
                 ).also { cache[name] = it }
@@ -159,9 +228,13 @@ object RuntimesManager {
         try {
             if (dest.exists()) FileUtils.deleteDirectory(dest)
             uncompressTarXZ(inputStream, dest, updateProgress)
+            flattenNestedRuntimeDir(dest)
             unpack200(nativeLibDir, dest.absolutePath)
             loadRuntime(name).also { runtime ->
                 postPrepare(runtime)
+            }
+            if (!isRuntimeComplete(name)) {
+                throw IOException("Runtime $name unpacked but completeness check failed!")
             }
         } catch (e: Exception) {
             FileUtils.deleteDirectory(dest)
@@ -225,6 +298,7 @@ object RuntimesManager {
             if (dest.exists()) FileUtils.deleteDirectory(dest)
             installRuntimeNoRemove(universalFileInputStream, dest, updateProgress)
             installRuntimeNoRemove(platformBinsInputStream, dest, updateProgress)
+            flattenNestedRuntimeDir(dest)
 
             unpack200(PathManager.DIR_NATIVE_LIB, dest.absolutePath)
 
@@ -232,6 +306,9 @@ object RuntimesManager {
             versionFile.writeText(binPackVersion)
 
             forceReload(name)
+            if (!isRuntimeComplete(name)) {
+                throw IOException("Internal runtime $name installed but completeness check failed!")
+            }
         } catch (e: Exception) {
             FileUtils.deleteDirectory(dest)
             throw e
@@ -260,8 +337,10 @@ object RuntimesManager {
 
     fun getRuntimeHome(name: String): File {
         val dest = RUNTIME_FOLDER.child(name)
-        if (!dest.exists() || forceReload(name).versionString == null) {
-            throw RuntimeException("Selected runtime is broken!")
+        if (!dest.exists() || !isRuntimeComplete(name)) {
+            Logger.warning(TAG, "Runtime $name is incomplete, missing, or corrupted. Cleaning up directory...")
+            removeRuntime(name)
+            throw IOException("Selected Java runtime $name is incomplete or corrupted! It has been removed. Please relaunch to auto-repair internal runtimes or reinstall from Java Manager.")
         }
 
         return dest

@@ -11,6 +11,7 @@
 package com.sednium.bladelauncher.game.multirt
 
 import android.content.Context
+import android.widget.Toast
 import com.sednium.bladelauncher.ZLApplication
 import com.sednium.bladelauncher.path.DOWNLOAD_OKHTTP_CLIENT
 import com.sednium.bladelauncher.path.PathManager
@@ -23,6 +24,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 
 private const val TAG = "JdkDownloadManager"
 
@@ -40,6 +42,9 @@ object JdkDownloadManager {
     private val _downloadingVersions = MutableStateFlow<Map<Int, Float>>(emptyMap())
     val downloadingVersions = _downloadingVersions.asStateFlow()
 
+    // HostCraft Android OpenJDK build mirror (pinned active releases with pre-built aarch64, arm, x86_64, x86)
+    private const val HOSTRUNTIME_BASE_URL = "https://github.com/Project-crafting/openjdk-android-hostcraft/releases/download/openjdk-2026.11.01-0456"
+
     val availableJdks: List<JdkCatalogItem> = listOf(
         JdkCatalogItem(
             majorVersion = 8,
@@ -49,24 +54,12 @@ object JdkDownloadManager {
             recommendedMc = "Minecraft ≤ 1.16.5",
             isLts = true,
             downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-pojav-release/jre8-arm64.tar.xz",
-                "armeabi-v7a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-pojav-release/jre8-arm.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-pojav-release/jre8-x86_64.tar.xz",
-                "x86" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-pojav-release/jre8-x86.tar.xz"
-            )
-        ),
-        JdkCatalogItem(
-            majorVersion = 11,
-            runtimeName = "Internal-11",
-            title = "Java 11 (LTS)",
-            description = "Intermediate Java 11 runtime for custom modded setups and server software.",
-            recommendedMc = "Minecraft 1.16+ / Custom",
-            isLts = true,
-            downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre11-pojav-release/jre11-arm64.tar.xz",
-                "armeabi-v7a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre11-pojav-release/jre11-arm.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre11-pojav-release/jre11-x86_64.tar.xz",
-                "x86" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre11-pojav-release/jre11-x86.tar.xz"
+                "arm64-v8a" to "$HOSTRUNTIME_BASE_URL/jre-8-aarch64.tar.xz",
+                "arm64" to "$HOSTRUNTIME_BASE_URL/jre-8-aarch64.tar.xz",
+                "armeabi-v7a" to "$HOSTRUNTIME_BASE_URL/jre-8-arm.tar.xz",
+                "arm" to "$HOSTRUNTIME_BASE_URL/jre-8-arm.tar.xz",
+                "x86_64" to "$HOSTRUNTIME_BASE_URL/jre-8-x86_64.tar.xz",
+                "x86" to "$HOSTRUNTIME_BASE_URL/jre-8-x86.tar.xz"
             )
         ),
         JdkCatalogItem(
@@ -77,10 +70,12 @@ object JdkDownloadManager {
             recommendedMc = "Minecraft 1.17 – 1.20.4",
             isLts = true,
             downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre17-pojav-release/jre17-arm64.tar.xz",
-                "armeabi-v7a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre17-pojav-release/jre17-arm.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre17-pojav-release/jre17-x86_64.tar.xz",
-                "x86" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre17-pojav-release/jre17-x86.tar.xz"
+                "arm64-v8a" to "$HOSTRUNTIME_BASE_URL/jre-17-aarch64.tar.xz",
+                "arm64" to "$HOSTRUNTIME_BASE_URL/jre-17-aarch64.tar.xz",
+                "armeabi-v7a" to "$HOSTRUNTIME_BASE_URL/jre-17-arm.tar.xz",
+                "arm" to "$HOSTRUNTIME_BASE_URL/jre-17-arm.tar.xz",
+                "x86_64" to "$HOSTRUNTIME_BASE_URL/jre-17-x86_64.tar.xz",
+                "x86" to "$HOSTRUNTIME_BASE_URL/jre-17-x86.tar.xz"
             )
         ),
         JdkCatalogItem(
@@ -91,40 +86,33 @@ object JdkDownloadManager {
             recommendedMc = "Minecraft 1.20.5 – 1.21.x",
             isLts = true,
             downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre21-pojav-release/jre21-arm64.tar.xz",
-                "armeabi-v7a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre21-pojav-release/jre21-arm.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre21-pojav-release/jre21-x86_64.tar.xz",
-                "x86" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre21-pojav-release/jre21-x86.tar.xz"
+                "arm64-v8a" to "$HOSTRUNTIME_BASE_URL/jre-21-aarch64.tar.xz",
+                "arm64" to "$HOSTRUNTIME_BASE_URL/jre-21-aarch64.tar.xz",
+                "armeabi-v7a" to "$HOSTRUNTIME_BASE_URL/jre-21-arm.tar.xz",
+                "arm" to "$HOSTRUNTIME_BASE_URL/jre-21-arm.tar.xz",
+                "x86_64" to "$HOSTRUNTIME_BASE_URL/jre-21-x86_64.tar.xz",
+                "x86" to "$HOSTRUNTIME_BASE_URL/jre-21-x86.tar.xz"
             )
         ),
         JdkCatalogItem(
             majorVersion = 25,
             runtimeName = "Internal-25",
             title = "Java 25 (LTS)",
-            description = "Next-generation runtime featuring enhanced JIT and ZGC for Minecraft 26.1+.",
-            recommendedMc = "Minecraft 26.1+",
+            description = "Next-generation runtime featuring enhanced JIT and ZGC for Minecraft snapshots and future versions.",
+            recommendedMc = "Minecraft 26.1+ / Snapshots",
             isLts = true,
             downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre25-pojav-release/jre25-arm64.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre25-pojav-release/jre25-x86_64.tar.xz"
-            )
-        ),
-        JdkCatalogItem(
-            majorVersion = 26,
-            runtimeName = "Internal-26",
-            title = "Java 26 (Experimental)",
-            description = "Cutting-edge Java 26 build for high performance testing and upcoming snapshot features.",
-            recommendedMc = "Snapshots & Experimental",
-            isLts = false,
-            downloadUrls = mapOf(
-                "arm64-v8a" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre26-pojav-release/jre26-arm64.tar.xz",
-                "x86_64" to "https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre26-pojav-release/jre26-x86_64.tar.xz"
+                "arm64-v8a" to "$HOSTRUNTIME_BASE_URL/jre-25-aarch64.tar.xz",
+                "arm64" to "$HOSTRUNTIME_BASE_URL/jre-25-aarch64.tar.xz",
+                "armeabi-v7a" to "$HOSTRUNTIME_BASE_URL/jre-25-arm.tar.xz",
+                "arm" to "$HOSTRUNTIME_BASE_URL/jre-25-arm.tar.xz",
+                "x86_64" to "$HOSTRUNTIME_BASE_URL/jre-25-x86_64.tar.xz"
             )
         )
     )
 
     fun isJdkInstalled(majorVersion: Int): Boolean {
-        return RuntimesManager.getRuntimes().any { it.javaVersion == majorVersion }
+        return RuntimesManager.getRuntimes().any { it.javaVersion == majorVersion && RuntimesManager.isRuntimeComplete(it.name) }
     }
 
     suspend fun downloadAndInstallJdk(
@@ -134,15 +122,22 @@ object JdkDownloadManager {
         onSuccess: () -> Unit = {},
         onError: (Throwable) -> Unit = {}
     ) = withContext(Dispatchers.IO) {
-        val archString = Architecture.archAsString(ZLApplication.DEVICE_ARCHITECTURE)
-        val url = item.downloadUrls[archString]
+        val archAndroid = Architecture.archAsStringAndroid(ZLApplication.DEVICE_ARCHITECTURE)
+        val archGeneric = Architecture.archAsString(ZLApplication.DEVICE_ARCHITECTURE)
+        val url = item.downloadUrls[archAndroid]
+            ?: item.downloadUrls[archGeneric]
             ?: item.downloadUrls["arm64-v8a"]
+            ?: item.downloadUrls["arm64"]
             ?: run {
-                onError(IllegalStateException("No compatible download URL found for arch $archString"))
+                val err = IllegalStateException("No compatible download URL found for arch $archAndroid")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, err.message, Toast.LENGTH_LONG).show()
+                    onError(err)
+                }
                 return@withContext
             }
 
-        val tempFile = File(context.cacheDir, "jdk_${item.majorVersion}_$archString.tar.xz")
+        val tempFile = File(context.cacheDir, "jdk_${item.majorVersion}_$archGeneric.tar.xz")
 
         try {
             _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 0f)
@@ -152,8 +147,16 @@ object JdkDownloadManager {
                 .build()
 
             DOWNLOAD_OKHTTP_CLIENT.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IllegalStateException("Download failed with HTTP ${response.code}")
-                val body = response.body ?: throw IllegalStateException("Empty response body")
+                if (!response.isSuccessful) {
+                    val code = response.code
+                    val msg = if (code == 404) {
+                        "Java runtime download failed (HTTP 404)"
+                    } else {
+                        "Java runtime download failed (HTTP $code)"
+                    }
+                    throw IOException(msg)
+                }
+                val body = response.body
                 val totalLength = body.contentLength()
 
                 body.byteStream().use { input ->
@@ -185,6 +188,10 @@ object JdkDownloadManager {
                 )
             }
 
+            if (!RuntimesManager.isRuntimeComplete(item.runtimeName)) {
+                throw IOException("Runtime ${item.runtimeName} installation was incomplete!")
+            }
+
             _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
             withContext(Dispatchers.Main) {
                 onSuccess()
@@ -192,7 +199,15 @@ object JdkDownloadManager {
         } catch (e: Throwable) {
             Logger.error(TAG, "Failed to download and install JDK ${item.majorVersion}", e)
             _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
+            // Delete broken partial runtime folder if left
+            RuntimesManager.removeRuntime(item.runtimeName)
             withContext(Dispatchers.Main) {
+                val errorMsg = if (e.message?.contains("404") == true) {
+                    "Java runtime download failed (HTTP 404)"
+                } else {
+                    e.message ?: "Java runtime download failed"
+                }
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                 onError(e)
             }
         } finally {

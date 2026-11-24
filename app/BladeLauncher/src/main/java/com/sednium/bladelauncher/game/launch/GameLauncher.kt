@@ -208,6 +208,16 @@ class GameLauncher(
         javaRuntime: String,
         customArgs: String
     ): Int {
+        if (!RuntimesManager.isRuntimeComplete(javaRuntime)) {
+            Logger.warning(TAG, "Runtime $javaRuntime is incomplete, missing, or corrupted. Checking for internal fallback...")
+            val jre = com.sednium.bladelauncher.components.jre.Jre.entries.firstOrNull { it.jreName == javaRuntime }
+            if (jre != null) {
+                Logger.info(TAG, "Auto-recovering internal runtime ${jre.jreName} before launch...")
+                val task = com.sednium.bladelauncher.components.jre.UnpackJreTask(activity, jre)
+                task.run()
+            }
+        }
+
         val runtime = RuntimesManager.forceReload(javaRuntime)
 
         val gameDirPath = version.getGameDir()

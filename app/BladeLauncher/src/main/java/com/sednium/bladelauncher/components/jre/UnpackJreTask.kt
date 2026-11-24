@@ -59,17 +59,26 @@ class UnpackJreTask(
         if (isCheckFailed) return InstallableItem.State.NOT_EXISTS
 
         return runCatching {
+            val isComplete = RuntimesManager.isRuntimeComplete(jre.jreName)
             val installedRuntimeVersion = RuntimesManager.loadInternalRuntimeVersion(jre.jreName)
+
             when {
-                //未安装该环境
-                installedRuntimeVersion == null -> InstallableItem.State.NOT_STARTED
+                // Not installed or corrupted/incomplete (e.g. arch null or missing binaries)
+                installedRuntimeVersion == null || !isComplete -> {
+                    if (!isComplete && RuntimesManager.getRuntimeDir(jre.jreName).exists()) {
+                        Logger.warning(TAG, "Runtime ${jre.jreName} exists on disk but is incomplete or has invalid metadata. Deleting for fresh unpack.")
+                        RuntimesManager.removeRuntime(jre.jreName)
+                    }
+                    InstallableItem.State.NOT_STARTED
+                }
                 launcherRuntimeVersion != installedRuntimeVersion -> InstallableItem.State.PENDING
                 else -> InstallableItem.State.FINISHED
             }
         }.onFailure { e ->
             Logger.error("CheckJre", "An exception occurred while detecting the Java Runtime.", e)
+            RuntimesManager.removeRuntime(jre.jreName)
         }.getOrElse {
-            //检查失败，要求重新进行安装
+            // Check failed, require clean reinstallation
             InstallableItem.State.NOT_STARTED
         }
     }
@@ -102,8 +111,13 @@ class UnpackJreTask(
                 }
             )
             RuntimesManager.postPrepare(jre.jreName)
+
+            if (!RuntimesManager.isRuntimeComplete(jre.jreName)) {
+                throw java.io.IOException("Internal JRE ${jre.jreName} unpacked but completeness verification failed (bin/java or arch missing)!")
+            }
         }.onFailure {
             Logger.error("UnpackJre", "Internal JRE unpack failed", it)
+            RuntimesManager.removeRuntime(jre.jreName)
         }.getOrThrow()
     }
 }
