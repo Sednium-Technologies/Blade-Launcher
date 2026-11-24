@@ -156,6 +156,17 @@
     <string name="notification_data_jvm_service_running">Installing game via foreground service</string>
     <string name="notification_data_terracotta_message">During multiplayer sessions, the launcher uses a foreground service to display the current connection status, so notification permission is required.</string>
     <string name="notification_jvm_running_name">JVM Keep-Alive Service</string>
+    <string name="notification_game_running_title">Blade Launcher — Game Running</string>
+    <string name="notification_game_terminate">Terminate</string>
+    <string name="notification_update_available_title">Blade Launcher Update Available</string>
+    <string name="notification_update_available_content">New version %s is available. Tap to install update.</string>
+    <string name="notification_download_progress_title">Blade Launcher — Downloading</string>
+    <string name="ota_downloading">Downloading Update…</string>
+    <string name="ota_ready_to_install">Update Ready to Install</string>
+    <string name="ota_install">Install Update</string>
+    <string name="ota_cancel">Cancel</string>
+    <string name="ota_permission_request">Installation permission is required to update Blade Launcher directly. Please allow installing unknown apps.</string>
+    <string name="generic_retry">Retry</string>
     <!--  Microphone  -->
     <string name="microphone_check_title">Check Microphone Input</string>
     <string name="microphone_check_volume">Volume: %d</string>

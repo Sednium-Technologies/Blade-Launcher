@@ -36,7 +36,9 @@ object Architecture {
     fun getAddressSpaceLimit() = if (is64BitsDevice) ADDRESS_SPACE_LIMIT_64_BIT else ADDRESS_SPACE_LIMIT_32_BIT
 
     val is64BitsDevice: Boolean
-        get() = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
+        get() = runCatching { Build.SUPPORTED_64_BIT_ABIS?.isNotEmpty() == true }.getOrElse {
+            System.getProperty("os.arch")?.contains("64") == true
+        }
 
     val is32BitsDevice: Boolean
         get() = !is64BitsDevice
@@ -50,9 +52,15 @@ object Architecture {
     }
 
     fun isx86Device(): Boolean {
-        val ABIs = if (is64BitsDevice) Build.SUPPORTED_64_BIT_ABIS else Build.SUPPORTED_32_BIT_ABIS
-        val comparedArch = if (is64BitsDevice) ARCH_X86_64 else ARCH_X86
-        return ABIs.any { archAsInt(it) == comparedArch }
+        val abis = runCatching {
+            if (is64BitsDevice) Build.SUPPORTED_64_BIT_ABIS else Build.SUPPORTED_32_BIT_ABIS
+        }.getOrNull()
+        if (abis != null && abis.isNotEmpty()) {
+            val comparedArch = if (is64BitsDevice) ARCH_X86_64 else ARCH_X86
+            return abis.any { archAsInt(it) == comparedArch }
+        }
+        val osArch = System.getProperty("os.arch")?.lowercase() ?: ""
+        return osArch.contains("x86") || osArch.contains("amd64") || osArch.contains("i386")
     }
 
     fun archAsInt(arch: String?): Int {

@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -46,6 +47,7 @@ import com.sednium.bladelauncher.coroutine.TaskSystem
 import com.sednium.bladelauncher.game.control.ControlManager
 import com.sednium.bladelauncher.game.plugin.driver.DriverPluginManager
 import com.sednium.bladelauncher.game.version.installed.VersionsManager
+import com.sednium.bladelauncher.notification.BladeNotificationManager
 import com.sednium.bladelauncher.notification.NotificationManager
 import com.sednium.bladelauncher.path.PathManager
 import com.sednium.bladelauncher.path.URL_SUPPORT
@@ -64,6 +66,7 @@ import com.sednium.bladelauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.sednium.bladelauncher.ui.theme.ZalithLauncherTheme
 import com.sednium.bladelauncher.ui.theme.feativals.FestivalEffects
 import com.sednium.bladelauncher.ui.theme.showThemed
+import com.sednium.bladelauncher.ui.upgrade.OtaUpdater
 import com.sednium.bladelauncher.ui.vulkan_checker.VCOperation
 import com.sednium.bladelauncher.ui.vulkan_checker.VulkanChecker
 import com.sednium.bladelauncher.upgrade.TooFrequentOperationException
@@ -71,12 +74,14 @@ import com.sednium.bladelauncher.utils.compareLangTag
 import com.sednium.bladelauncher.utils.copyText
 import com.sednium.bladelauncher.utils.device.VulkanChecker
 import com.sednium.bladelauncher.utils.festival.getTodayFestivals
+import com.sednium.bladelauncher.utils.file.formatFileSize
 import com.sednium.bladelauncher.utils.file.shareFile
 import com.sednium.bladelauncher.utils.isChinese
 import com.sednium.bladelauncher.utils.logging.Logger
 import com.sednium.bladelauncher.utils.network.openLink
 import com.sednium.bladelauncher.utils.network.openLinkInternal
 import com.sednium.bladelauncher.utils.string.getMessageOrToString
+import kotlinx.coroutines.Job
 import com.sednium.bladelauncher.viewmodel.BackgroundViewModel
 import com.sednium.bladelauncher.viewmodel.ErrorViewModel
 import com.sednium.bladelauncher.viewmodel.EventViewModel
@@ -164,12 +169,76 @@ class MainActivity : BaseAppCompatActivity() {
      * 是否开启捕获按键模式
      */
     private var isCaptureKey = false
+    private var downloadNotificationJob: Job? = null
+
+    private fun handleOtaIntentIfNeeded(intent: Intent?) {
+        if (intent?.getBooleanExtra(BladeNotificationManager.EXTRA_OPEN_OTA_MODAL, false) == true) {
+            BladeNotificationManager.cancelOtaUpdateNotification(this)
+            val cachedData = launcherUpgradeViewModel.cachedRemoteData
+            if (cachedData != null) {
+                val target = OtaUpdater.resolveTargetApk(cachedData)
+                launcherUpgradeViewModel.operation = LauncherUpgradeOperation.OtaUpdate(cachedData, target)
+            } else {
+                lifecycleScope.launch {
+                    launcherUpgradeViewModel.checkManually()
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         //初始化通知管理（创建渠道）
         NotificationManager.initManager(this)
+
+        handleOtaIntentIfNeeded(intent)
+
+        lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    downloadNotificationJob?.cancel()
+                    downloadNotificationJob = lifecycleScope.launch(Dispatchers.Default) {
+                        TaskSystem.tasksFlow.collect { tasks ->
+                            if (tasks.isEmpty()) {
+                                BladeNotificationManager.cancelDownloadProgress(this@MainActivity)
+                                return@collect
+                            }
+                            val firstTask = tasks.firstOrNull() ?: return@collect
+                            val taskTitle = firstTask.currentMessageRes?.let { resId ->
+                                if (firstTask.currentMessageArgs != null) {
+                                    runCatching { getString(resId, *firstTask.currentMessageArgs!!) }.getOrNull()
+                                } else {
+                                    runCatching { getString(resId) }.getOrNull()
+                                }
+                            } ?: getString(R.string.notification_download_progress_title)
+
+                            val progress = firstTask.currentProgress
+                            val percent = if (progress >= 0f) (progress * 100).toInt() else 0
+                            val isIndeterminate = progress < 0f
+
+                            val speed = firstTask.currentRateBytesPerSec
+                            val speedStr = if (speed > 0L) "${formatFileSize(speed)}/s" else ""
+                            val detailText = if (speedStr.isNotEmpty()) "$percent% • $speedStr" else if (progress >= 0f) "$percent%" else "In progress…"
+
+                            BladeNotificationManager.updateDownloadProgress(
+                                context = this@MainActivity,
+                                taskTitle = taskTitle,
+                                detailText = detailText,
+                                progressPercent = percent,
+                                isIndeterminate = isIndeterminate
+                            )
+                        }
+                    }
+                }
+                Lifecycle.Event.ON_START -> {
+                    downloadNotificationJob?.cancel()
+                    downloadNotificationJob = null
+                    BladeNotificationManager.cancelDownloadProgress(this@MainActivity)
+                }
+                else -> {}
+            }
+        })
 
         //处理外部导入
         val isImporting = handleImportIfNeeded(intent)
@@ -463,6 +532,7 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleImportIfNeeded(intent)
+        handleOtaIntentIfNeeded(intent)
     }
 
     /**

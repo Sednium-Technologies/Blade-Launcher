@@ -92,3 +92,11 @@
     public static final android.os.Parcelable$Creator CREATOR;
 }
 -keep class com.sednium.bladelauncher.ui.activities.JvmCrash { *; }
+
+# Notification and Upgrade / OTA preservation
+-keep class com.sednium.bladelauncher.notification.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.notification.** { *; }
+-keep class com.sednium.bladelauncher.ui.upgrade.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.ui.upgrade.** { *; }
+-keep class com.sednium.bladelauncher.upgrade.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.upgrade.** { *; }

@@ -62,6 +62,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import com.sednium.bladelauncher.context.GlobalContext
+import com.sednium.bladelauncher.notification.BladeNotificationManager
+import com.sednium.bladelauncher.ui.upgrade.OtaUpdateDialog
+import com.sednium.bladelauncher.ui.upgrade.OtaUpdater
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -73,6 +77,8 @@ sealed interface LauncherUpgradeOperation {
     data class Upgrade(val data: RemoteData) : LauncherUpgradeOperation
     /** 选择要安装的安装包文件 */
     data class SelectApk(val data: RemoteData) : LauncherUpgradeOperation
+    /** 应用内 OTA 增量/全量更新下载并安装 */
+    data class OtaUpdate(val data: RemoteData, val targetFile: RemoteData.RemoteFile? = null) : LauncherUpgradeOperation
     /** 打开网盘分享 */
     data class OpenCloudDrive(val cloudDrive: RemoteData.CloudDrive) : LauncherUpgradeOperation
 }
@@ -87,6 +93,7 @@ private const val LATEST_API_URL = URL_BLADE_RELEASES_API
  */
 class LauncherUpgradeViewModel: ViewModel() {
     var operation by mutableStateOf<LauncherUpgradeOperation>(LauncherUpgradeOperation.None)
+    var cachedRemoteData by mutableStateOf<RemoteData?>(null)
 
     private val checkMutex = Mutex()
 
@@ -230,6 +237,10 @@ class LauncherUpgradeViewModel: ViewModel() {
                 else -> {
                     //弹出更新弹窗
                     Logger.info(TAG, "Launcher update detected: $currentVersionName ($currentVersionCode) -> ${data.version} (${data.code}), dialog shown to user")
+                    cachedRemoteData = data
+                    runCatching {
+                        BladeNotificationManager.postOtaUpdateNotification(GlobalContext, data.version)
+                    }
                     onUpgrade(data)
                 }
             }
@@ -256,7 +267,8 @@ fun LauncherUpgradeOperation(
                     onChanged(LauncherUpgradeOperation.None)
                 },
                 onFilesClick = {
-                    onChanged(LauncherUpgradeOperation.SelectApk(operation.data))
+                    val target = OtaUpdater.resolveTargetApk(operation.data)
+                    onChanged(LauncherUpgradeOperation.OtaUpdate(operation.data, target))
                 },
                 onIgnored = {
                     onIgnoredClick(operation.data.code)
@@ -274,7 +286,15 @@ fun LauncherUpgradeOperation(
                     onChanged(LauncherUpgradeOperation.None)
                 },
                 onFileSelected = { file ->
-                    onLinkClick(file.uri)
+                    onChanged(LauncherUpgradeOperation.OtaUpdate(operation.data, file))
+                }
+            )
+        }
+        is LauncherUpgradeOperation.OtaUpdate -> {
+            OtaUpdateDialog(
+                data = operation.data,
+                targetFile = operation.targetFile,
+                onDismissRequest = {
                     onChanged(LauncherUpgradeOperation.None)
                 }
             )

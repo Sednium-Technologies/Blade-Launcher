@@ -18,6 +18,7 @@
 
 package com.sednium.bladelauncher.ui.screens.main
 
+import android.content.res.Configuration
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -66,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -223,12 +225,13 @@ fun MainScreen(
                     submitError = submitError
                 )
 
+                val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
                 TaskMenu(
                     tasks = tasks,
                     isExpanded = isTaskMenuExpanded,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.3f)
+                        .fillMaxWidth(if (isPortrait) 0.88f else 0.35f)
                         .align(Alignment.CenterStart)
                         .padding(all = 6.dp)
                 ) {
@@ -784,7 +787,9 @@ private fun TaskItem(
                         } else {
                             stringResource(messageRes)
                         },
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 

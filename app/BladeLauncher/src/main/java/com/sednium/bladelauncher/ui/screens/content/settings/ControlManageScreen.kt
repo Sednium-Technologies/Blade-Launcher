@@ -18,6 +18,7 @@
 
 package com.sednium.bladelauncher.ui.screens.content.settings
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -102,6 +103,7 @@ import com.sednium.bladelauncher.path.PathManager
 import com.sednium.bladelauncher.setting.AllSettings
 import com.sednium.bladelauncher.ui.activities.startEditorActivity
 import com.sednium.bladelauncher.ui.base.BaseScreen
+import com.sednium.bladelauncher.ui.components.AnimatedColumn
 import com.sednium.bladelauncher.ui.components.AnimatedRow
 import com.sednium.bladelauncher.ui.components.BackgroundCard
 import com.sednium.bladelauncher.ui.components.CardTitleLayout
@@ -267,67 +269,140 @@ fun ControlManageScreen(
         val selectedLayout by ControlManager.selectedLayout.collectAsStateWithLifecycle()
         val isRefreshing by ControlManager.isRefreshing.collectAsStateWithLifecycle()
 
-        AnimatedRow(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(all = 12.dp),
-            isVisible = isVisible
-        ) { scope ->
-            AnimatedItem(scope) { xOffset ->
-                ControlLayoutList(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                    dataList = dataList,
-                    locale = locale,
-                    isLoading = isRefreshing,
-                    onRefresh = {
-                        ControlManager.refresh()
-                    },
-                    onCreate = {
-                        viewModel.operation = ControlOperation.CreateNew
-                    },
-                    onCopy = { data ->
-                        viewModel.copyNew(data.controlLayout) { e ->
-                            submitError(
-                                ErrorViewModel.ThrowableMessage(
-                                    title = context.getString(R.string.control_manage_failed_to_save),
-                                    message = e.getMessageOrToString()
-                                )
-                            )
-                        }
-                    },
-                    onDelete = { data ->
-                        viewModel.operation = ControlOperation.Delete(data)
-                    },
-                    eventViewModel = eventViewModel,
-                )
-            }
+        val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
-            AnimatedItem(scope) { xOffset ->
-                ControlLayoutInfo(
-                    modifier = Modifier
-                        .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                    isLoading = isRefreshing,
-                    data = selectedLayout,
-                    locale = locale,
-                    onShareLayout = { data ->
-                        shareFile(context, data.file)
-                    },
-                    onEditLayout = { data ->
-                        startEditorActivity(context, data.file)
-                    },
-                    onEditText = { data, string, type ->
-                        viewModel.operation = ControlOperation.EditText(data, string, type)
-                    },
-                    onEditDescription = { data ->
-                        viewModel.operation = ControlOperation.EditDescription(data)
-                    },
-                    onEditVersion = { data ->
-                        viewModel.operation = ControlOperation.EditVersion(data)
-                    }
-                )
+        if (isPortrait) {
+            AnimatedColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(all = 12.dp),
+                isVisible = isVisible,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) { scope ->
+                AnimatedItem(scope) { yOffset ->
+                    ControlLayoutList(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.48f)
+                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        dataList = dataList,
+                        locale = locale,
+                        isLoading = isRefreshing,
+                        onRefresh = {
+                            ControlManager.refresh()
+                        },
+                        onCreate = {
+                            viewModel.operation = ControlOperation.CreateNew
+                        },
+                        onCopy = { data ->
+                            viewModel.copyNew(data.controlLayout) { e ->
+                                submitError(
+                                    ErrorViewModel.ThrowableMessage(
+                                        title = context.getString(R.string.control_manage_failed_to_save),
+                                        message = e.getMessageOrToString()
+                                    )
+                                )
+                            }
+                        },
+                        onDelete = { data ->
+                            viewModel.operation = ControlOperation.Delete(data)
+                        },
+                        eventViewModel = eventViewModel,
+                    )
+                }
+
+                AnimatedItem(scope) { yOffset ->
+                    ControlLayoutInfo(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.52f)
+                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        isLoading = isRefreshing,
+                        data = selectedLayout,
+                        locale = locale,
+                        onShareLayout = { data ->
+                            shareFile(context, data.file)
+                        },
+                        onEditLayout = { data ->
+                            startEditorActivity(context, data.file)
+                        },
+                        onEditText = { data, string, type ->
+                            viewModel.operation = ControlOperation.EditText(data, string, type)
+                        },
+                        onEditDescription = { data ->
+                            viewModel.operation = ControlOperation.EditDescription(data)
+                        },
+                        onEditVersion = { data ->
+                            viewModel.operation = ControlOperation.EditVersion(data)
+                        }
+                    )
+                }
+            }
+        } else {
+            AnimatedRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(all = 12.dp),
+                isVisible = isVisible
+            ) { scope ->
+                AnimatedItem(scope) { xOffset ->
+                    ControlLayoutList(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(0.5f)
+                            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        dataList = dataList,
+                        locale = locale,
+                        isLoading = isRefreshing,
+                        onRefresh = {
+                            ControlManager.refresh()
+                        },
+                        onCreate = {
+                            viewModel.operation = ControlOperation.CreateNew
+                        },
+                        onCopy = { data ->
+                            viewModel.copyNew(data.controlLayout) { e ->
+                                submitError(
+                                    ErrorViewModel.ThrowableMessage(
+                                        title = context.getString(R.string.control_manage_failed_to_save),
+                                        message = e.getMessageOrToString()
+                                    )
+                                )
+                            }
+                        },
+                        onDelete = { data ->
+                            viewModel.operation = ControlOperation.Delete(data)
+                        },
+                        eventViewModel = eventViewModel,
+                    )
+                }
+
+                AnimatedItem(scope) { xOffset ->
+                    ControlLayoutInfo(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(0.5f)
+                            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        isLoading = isRefreshing,
+                        data = selectedLayout,
+                        locale = locale,
+                        onShareLayout = { data ->
+                            shareFile(context, data.file)
+                        },
+                        onEditLayout = { data ->
+                            startEditorActivity(context, data.file)
+                        },
+                        onEditText = { data, string, type ->
+                            viewModel.operation = ControlOperation.EditText(data, string, type)
+                        },
+                        onEditDescription = { data ->
+                            viewModel.operation = ControlOperation.EditDescription(data)
+                        },
+                        onEditVersion = { data ->
+                            viewModel.operation = ControlOperation.EditVersion(data)
+                        }
+                    )
+                }
             }
         }
     }
@@ -451,7 +526,7 @@ private fun ControlLayoutList(
     eventViewModel: EventViewModel,
 ) {
     BackgroundCard(
-        modifier = modifier.fillMaxHeight(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge
     ) {
         if (isLoading) {
@@ -672,7 +747,7 @@ private fun ControlLayoutInfo(
     onEditVersion: (ControlData) -> Unit
 ) {
     BackgroundCard(
-        modifier = modifier.fillMaxHeight(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge
     ) {
         if (isLoading) {
@@ -783,14 +858,14 @@ private fun ControlLayoutInfo(
 
             Row(
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ScalingActionButton(
                     modifier = Modifier
-                        .weight(1f, fill = false),
+                        .weight(1f),
                     onClick = { onShareLayout(data) }
                 ) {
                     MarqueeText(
@@ -800,7 +875,7 @@ private fun ControlLayoutInfo(
 
                 ScalingActionButton(
                     modifier = Modifier
-                        .weight(1f, fill = false),
+                        .weight(1f),
                     onClick = { onEditLayout(data) }
                 ) {
                     MarqueeText(

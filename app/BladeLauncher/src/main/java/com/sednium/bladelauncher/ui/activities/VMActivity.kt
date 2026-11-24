@@ -354,10 +354,17 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         //初始化物理鼠标连接检查器
         PhysicalMouseChecker.initChecker(this)
 
-        //启动前台服务，防止后台网络中断
-        startForegroundService(Intent(this, GameService::class.java))
-
         val bundle = intent.extras ?: throw IllegalStateException("Unknown VM launch state!")
+        val config = runCatching { bundle.getParcelableSafely(INTENT_GAME_CONFIG, LaunchConfig::class.java) }.getOrNull()
+        val versionName = config?.version?.getVersionName() ?: "Minecraft"
+        val profileName = config?.account?.username ?: "Steve"
+
+        //启动前台服务，防止后台网络中断并提供终止操作
+        val gameServiceIntent = Intent(this, GameService::class.java).apply {
+            putExtra(GameService.EXTRA_VERSION_NAME, versionName)
+            putExtra(GameService.EXTRA_PROFILE_NAME, profileName)
+        }
+        startForegroundService(gameServiceIntent)
 
         vmViewModel.initSession(
             activity = this,

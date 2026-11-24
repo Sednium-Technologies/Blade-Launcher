@@ -154,6 +154,17 @@
     <string name="notification_data_jvm_service_running">正在前台服务安装游戏中</string>
     <string name="notification_data_terracotta_message">在多人联机的过程中，启动器会使用前台服务来显示当前联机状态，因此需要您开启通知权限。</string>
     <string name="notification_jvm_running_name">JVM 保活服务</string>
+    <string name="notification_game_running_title">Blade Launcher — 游戏运行中</string>
+    <string name="notification_game_terminate">终止运行</string>
+    <string name="notification_update_available_title">Blade Launcher 新版本可用</string>
+    <string name="notification_update_available_content">发现新版本 %s，点击立即更新安装。</string>
+    <string name="notification_download_progress_title">Blade Launcher — 正在下载</string>
+    <string name="ota_downloading">正在下载更新包…</string>
+    <string name="ota_ready_to_install">更新包已就绪</string>
+    <string name="ota_install">立即安装</string>
+    <string name="ota_cancel">取消</string>
+    <string name="ota_permission_request">应用内更新需要安装未知应用权限，请前往授权。</string>
+    <string name="generic_retry">重试</string>
     <!--  麦克风  -->
     <string name="microphone_check_title">检查麦克风输入</string>
     <string name="microphone_check_volume">音量：%d</string>
