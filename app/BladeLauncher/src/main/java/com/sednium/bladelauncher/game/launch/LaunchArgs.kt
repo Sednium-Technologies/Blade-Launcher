@@ -41,6 +41,7 @@ import com.sednium.bladelauncher.game.versioninfo.models.GameManifest
 import com.sednium.bladelauncher.path.LibPath
 import com.sednium.bladelauncher.path.PathManager
 import com.sednium.bladelauncher.ui.screens.content.elements.QuickPlay
+import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.file.child
 import com.sednium.bladelauncher.utils.logging.Logger
 import com.sednium.bladelauncher.utils.network.ServerAddress
@@ -246,17 +247,21 @@ class LaunchArgs(
         Logger.info(TAG, "Detected LWJGL requirement version=$lwjglVersion")
         val launchClassPath = "${getLWJGL3ClassPath(lwjglVersion)}:${generateLaunchClassPath(gameManifest)}"
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
+        val lwjglNativesDir = File(
+            PathManager.DIR_COMPONENTS,
+            "lwjgl/${lwjglVersionDir(lwjglVersion)}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
+        ).absolutePath
 
         varArgMap["classpath_separator"] = ":"
         varArgMap["library_directory"] = getLibrariesHome()
         varArgMap["version_name"] = gameManifest1.id
-        varArgMap["natives_directory"] = runtimeLibraryPath
+        varArgMap["natives_directory"] = lwjglNativesDir
         setLauncherInfo(varArgMap)
 
         fun Any.processJvmArg(): String? = (this as? String)?.let { argument ->
             if (argument.startsWith("-Djava.library.path=")) {
                 //26.2+ Mojang 更改到了具体的路径，需要手动重定向
-                return@let "-Djava.library.path=${PathManager.DIR_NATIVE_LIB}:$runtimeLibraryPath"
+                return@let "-Djava.library.path=$lwjglNativesDir:${PathManager.DIR_NATIVE_LIB}:$runtimeLibraryPath"
             }
             when {
                 argument.startsWith("-DignoreList=") -> {

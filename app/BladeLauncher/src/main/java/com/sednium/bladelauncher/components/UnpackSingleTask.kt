@@ -21,6 +21,7 @@ package com.sednium.bladelauncher.components
 import android.content.Context
 import android.content.res.AssetManager
 import com.sednium.bladelauncher.context.copyAssetFile
+import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.file.readString
 import com.sednium.bladelauncher.utils.logging.Logger
 import org.apache.commons.io.FileUtils
@@ -70,6 +71,17 @@ abstract class UnpackSingleTask(
                 if (release1 != release2) {
                     requestEmptyParentDir(versionFile)
                     InstallableItem.State.PENDING
+                } else if (fileDirName.startsWith("lwjgl")) {
+                    val archName = Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())
+                    val expectedLwjgl = File(rootDir, "$fileDirName/natives/$archName/liblwjgl.so")
+                    if (!expectedLwjgl.exists() || expectedLwjgl.length() == 0L) {
+                        Logger.warning(TAG, "$fileDirName: Missing native library ${expectedLwjgl.absolutePath}, requesting unpack...")
+                        requestEmptyParentDir(versionFile)
+                        InstallableItem.State.NOT_STARTED
+                    } else {
+                        Logger.info(TAG, "$fileDirName: Pack is up-to-date and verified on disk, continuing...")
+                        InstallableItem.State.FINISHED
+                    }
                 } else {
                     Logger.info(TAG, "$fileDirName: Pack is up-to-date with the launcher, continuing...")
                     InstallableItem.State.FINISHED

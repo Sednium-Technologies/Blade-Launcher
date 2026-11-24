@@ -289,8 +289,11 @@ abstract class Launcher(
         // Our spirv-cross is compiled shared, so it gets named shared.
         args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
 
+        args.purgeArg("-Dorg.lwjgl.librarypath")
+        args.add("-Dorg.lwjgl.librarypath=$lwjglNativesDir")
+
         args.purgeArg("-Djava.library.path")
-        args.add("-Djava.library.path=${PathManager.DIR_NATIVE_LIB}:${getRuntimeLibraryPath()}")
+        args.add("-Djava.library.path=$lwjglNativesDir:${PathManager.DIR_NATIVE_LIB}:${getRuntimeLibraryPath()}")
 
         args.purgeArg("-Djna.boot.library.path")
         args.add("-Djna.boot.library.path=${PathManager.DIR_NATIVE_LIB}")

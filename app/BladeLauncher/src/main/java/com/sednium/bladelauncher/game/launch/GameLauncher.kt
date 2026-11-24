@@ -218,6 +218,19 @@ class GameLauncher(
             }
         }
 
+        // 自动检查并自愈缺失的 LWJGL native 库
+        val lwjglFile = File(lwjglNativesDir, "liblwjgl.so")
+        if (!lwjglFile.exists() || lwjglFile.length() == 0L) {
+            Logger.warning(TAG, "LWJGL native library missing at $lwjglNativesDir, auto-unpacking before launch...")
+            val component = if (getLwjglVersionDir() == "3.4.1") {
+                com.sednium.bladelauncher.components.Components.LWJGL341
+            } else {
+                com.sednium.bladelauncher.components.Components.LWJGL333
+            }
+            val task = com.sednium.bladelauncher.components.UnpackComponentsTask(activity, component)
+            task.run()
+        }
+
         val runtime = RuntimesManager.forceReload(javaRuntime)
 
         val gameDirPath = version.getGameDir()
