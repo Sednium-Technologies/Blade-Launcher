@@ -122,9 +122,34 @@ object JdkDownloadManager {
         onSuccess: () -> Unit = {},
         onError: (Throwable) -> Unit = {}
     ) = withContext(Dispatchers.IO) {
+        // Fast path: if the requested runtime is bundled in APK assets, unpack it locally
+        val internalJre = com.sednium.bladelauncher.components.jre.Jre.entries.firstOrNull { it.majorVersion == item.majorVersion }
+        if (internalJre != null) {
+            val unpackTask = com.sednium.bladelauncher.components.jre.UnpackJreTask(context, internalJre)
+            if (!unpackTask.isCheckFailed()) {
+                Logger.info(TAG, "Runtime ${item.runtimeName} is bundled in APK assets. Unpacking directly from assets...")
+                try {
+                    _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 0.5f)
+                    unpackTask.run()
+                    if (RuntimesManager.isRuntimeComplete(item.runtimeName)) {
+                        _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
+                        withContext(Dispatchers.Main) {
+                            onSuccess()
+                        }
+                        return@withContext
+                    }
+                } catch (e: Throwable) {
+                    Logger.warning(TAG, "Unpack from assets failed, falling back to remote download: ${e.message}")
+                    RuntimesManager.removeRuntime(item.runtimeName)
+                } finally {
+                    _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
+                }
+            }
+        }
+
         val archAndroid = Architecture.archAsStringAndroid(ZLApplication.DEVICE_ARCHITECTURE)
         val archGeneric = Architecture.archAsString(ZLApplication.DEVICE_ARCHITECTURE)
-        val url = item.downloadUrls[archAndroid]
+        val primaryUrl = item.downloadUrls[archAndroid]
             ?: item.downloadUrls[archGeneric]
             ?: item.downloadUrls["arm64-v8a"]
             ?: item.downloadUrls["arm64"]
@@ -137,46 +162,74 @@ object JdkDownloadManager {
                 return@withContext
             }
 
+        val candidateUrls = buildList {
+            add(primaryUrl)
+            if (primaryUrl.startsWith("https://github.com/")) {
+                add("https://ghproxy.net/$primaryUrl")
+            }
+        }.distinct()
+
         val tempFile = File(context.cacheDir, "jdk_${item.majorVersion}_$archGeneric.tar.xz")
 
         try {
             _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 0f)
 
-            val request = Request.Builder()
-                .url(url)
-                .build()
+            var downloadSuccess = false
+            var lastError: Throwable? = null
 
-            DOWNLOAD_OKHTTP_CLIENT.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    val code = response.code
-                    val msg = if (code == 404) {
-                        "Java runtime download failed (HTTP 404)"
-                    } else {
-                        "Java runtime download failed (HTTP $code)"
-                    }
-                    throw IOException(msg)
-                }
-                val body = response.body
-                val totalLength = body.contentLength()
+            for (url in candidateUrls) {
+                try {
+                    Logger.info(TAG, "Downloading JDK ${item.majorVersion} from $url")
+                    if (tempFile.exists()) tempFile.delete()
 
-                body.byteStream().use { input ->
-                    FileOutputStream(tempFile).use { output ->
-                        val buffer = ByteArray(8192)
-                        var bytesRead: Int
-                        var downloaded: Long = 0
+                    val request = Request.Builder()
+                        .url(url)
+                        .header("User-Agent", "Mozilla/5.0 (Android; Mobile; rv:120.0) BladeLauncher")
+                        .build()
 
-                        while (input.read(buffer).also { bytesRead = it } != -1) {
-                            output.write(buffer, 0, bytesRead)
-                            downloaded += bytesRead
-                            if (totalLength > 0) {
-                                val progress = downloaded.toFloat() / totalLength.toFloat()
-                                onProgress(progress)
-                                _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to progress)
+                    DOWNLOAD_OKHTTP_CLIENT.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            val code = response.code
+                            val msg = if (code == 404) {
+                                "Java runtime download failed (HTTP 404) from $url"
+                            } else {
+                                "Java runtime download failed (HTTP $code) from $url"
+                            }
+                            throw IOException(msg)
+                        }
+                        val body = response.body
+                        val totalLength = body.contentLength()
+
+                        body.byteStream().use { input ->
+                            FileOutputStream(tempFile).use { output ->
+                                val buffer = ByteArray(8192)
+                                var bytesRead: Int
+                                var downloaded: Long = 0
+
+                                while (input.read(buffer).also { bytesRead = it } != -1) {
+                                    output.write(buffer, 0, bytesRead)
+                                    downloaded += bytesRead
+                                    if (totalLength > 0) {
+                                        val progress = downloaded.toFloat() / totalLength.toFloat()
+                                        onProgress(progress)
+                                        _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to progress)
+                                    }
+                                }
+                                output.flush()
                             }
                         }
-                        output.flush()
                     }
+
+                    downloadSuccess = true
+                    break
+                } catch (e: Throwable) {
+                    Logger.warning(TAG, "Download attempt failed from $url: ${e.message}")
+                    lastError = e
                 }
+            }
+
+            if (!downloadSuccess) {
+                throw lastError ?: IOException("All download candidates failed for JDK ${item.majorVersion}")
             }
 
             // Unpack and install into RuntimesManager

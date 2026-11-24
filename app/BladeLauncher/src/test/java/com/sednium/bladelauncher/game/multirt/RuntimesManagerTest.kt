@@ -18,6 +18,8 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import com.sednium.bladelauncher.game.addons.mirror.mapBMCLMirrorUrls
+import com.sednium.bladelauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
 import java.io.File
 import java.io.IOException
 
@@ -115,5 +117,23 @@ class RuntimesManagerTest {
         }
 
         assertFalse("Broken directory must be deleted after failure", brokenDir.exists())
+    }
+
+    @Test
+    fun testBmclMirrorUrls_alwaysProvidesFallback() {
+        val mojongUrl = "https://libraries.minecraft.net/com/mojang/patchy/1.3.9/patchy-1.3.9.jar"
+        val urls = mojongUrl.mapBMCLMirrorUrls()
+        assertTrue("Mirror list must contain at least 2 URLs (primary and mirror fallback)", urls.size >= 2)
+        assertTrue("Primary official URL must be present", urls.contains(mojongUrl))
+        assertTrue("BMCL mirror URL must be present", urls.any { it.contains("bmclapi") })
+    }
+
+    @Test
+    fun testMcimMirrorUrls_alwaysProvidesFallback() {
+        val curseforgeUrl = "https://edge.forgecdn.net/files/123/456/test.jar"
+        val urls = curseforgeUrl.mapMCIMMirrorUrls()
+        assertTrue("MCIM mirror list must contain at least 2 URLs", urls.size >= 2)
+        assertTrue("Primary URL must be present", urls.contains(curseforgeUrl))
+        assertTrue("MCIM mirror URL must be present", urls.any { it.contains("mcimirror") })
     }
 }

@@ -70,18 +70,21 @@ fun String.mapBMCLMirrorUrls(): List<String> {
         this.replaceFirst(origin, mirror)
     }
 
-    return if (isChinaMainland()) {
-        val type = if (!isAssetsFile) {
-            AllSettings.fileDownloadSource.getValue()
+    val type = runCatching {
+        if (isChinaMainland()) {
+            if (!isAssetsFile) {
+                AllSettings.fileDownloadSource.getValue()
+            } else {
+                //资源文件数量过多，请求量大，应先尝试官方源，减轻 BMCL API 源压力
+                MirrorSourceType.OFFICIAL_FIRST
+            }
         } else {
-            //资源文件数量过多，请求量大，应先尝试官方源，减轻 BMCL API 源压力
-            MirrorSourceType.OFFICIAL_FIRST
+            AllSettings.fileDownloadSource.getValue()
         }
-        when (type) {
-            MirrorSourceType.OFFICIAL_FIRST -> listOfNotNull(this, mirrorUrl)
-            MirrorSourceType.MIRROR_FIRST -> listOfNotNull(mirrorUrl, this)
-        }
-    } else {
-        listOf(this)
+    }.getOrDefault(MirrorSourceType.OFFICIAL_FIRST)
+
+    return when (type) {
+        MirrorSourceType.OFFICIAL_FIRST -> listOfNotNull(this, mirrorUrl).distinct()
+        MirrorSourceType.MIRROR_FIRST -> listOfNotNull(mirrorUrl, this).distinct()
     }
 }

@@ -35,22 +35,16 @@ private val REPLACE_MIRROR_HOLDERS = listOf(
  * 根据是否为中国地区决定，是否启用 MCIM 镜像源，若启用，则会根据优先级，生成链接集合
  */
 fun String.mapMCIMMirrorUrls(): List<String> {
-    return if (isChinaMainland()) {
-        val mirroredUrl = REPLACE_MIRROR_HOLDERS.find { key ->
-            this.startsWith(key)
-        }?.let { origin ->
-            this.replaceFirst(origin, ROOT)
-        }
+    val mirroredUrl = REPLACE_MIRROR_HOLDERS.find { key ->
+        this.startsWith(key)
+    }?.let { origin ->
+        this.replaceFirst(origin, ROOT)
+    }
 
-        val source = AllSettings.assetDownloadSource.getValue()
-        when (source) {
-            MirrorSourceType.OFFICIAL_FIRST ->
-                listOfNotNull(this, mirroredUrl)
-            MirrorSourceType.MIRROR_FIRST ->
-                listOfNotNull(mirroredUrl, this)
-        }
-    } else {
-        listOf(this)
+    val source = runCatching { AllSettings.assetDownloadSource.getValue() }.getOrDefault(MirrorSourceType.OFFICIAL_FIRST)
+    return when (source) {
+        MirrorSourceType.OFFICIAL_FIRST -> listOfNotNull(this, mirroredUrl).distinct()
+        MirrorSourceType.MIRROR_FIRST -> listOfNotNull(mirroredUrl, this).distinct()
     }
 }
 
@@ -61,29 +55,27 @@ fun String.mapMCIMMirrorUrls(): List<String> {
  * 将检查数组内是否有可以被替换的链接，如果有，则生成镜像链接，根据优先级，穿插到列表前/后
  */
 fun Array<String>.mapMCIMMirrorUrls(): List<String> {
-    if (isChinaMainland()) {
-        val sources = mapNotNull { url ->
-            REPLACE_MIRROR_HOLDERS.find { key ->
-                url.startsWith(key)
-            }?.let { origin ->
-                url.replaceFirst(origin, ROOT)
-            }
+    val sources = mapNotNull { url ->
+        REPLACE_MIRROR_HOLDERS.find { key ->
+            url.startsWith(key)
+        }?.let { origin ->
+            url.replaceFirst(origin, ROOT)
         }
-        if (sources.isNotEmpty()) {
-            val source = AllSettings.assetDownloadSource.getValue()
-            return buildList {
-                when (source) {
-                    MirrorSourceType.OFFICIAL_FIRST -> {
-                        addAll(this@mapMCIMMirrorUrls)
-                        addAll(sources)
-                    }
-                    MirrorSourceType.MIRROR_FIRST -> {
-                        addAll(sources)
-                        addAll(this@mapMCIMMirrorUrls)
-                    }
+    }
+    if (sources.isNotEmpty()) {
+        val source = runCatching { AllSettings.assetDownloadSource.getValue() }.getOrDefault(MirrorSourceType.OFFICIAL_FIRST)
+        return buildList {
+            when (source) {
+                MirrorSourceType.OFFICIAL_FIRST -> {
+                    addAll(this@mapMCIMMirrorUrls)
+                    addAll(sources)
+                }
+                MirrorSourceType.MIRROR_FIRST -> {
+                    addAll(sources)
+                    addAll(this@mapMCIMMirrorUrls)
                 }
             }
-        }
+        }.distinct()
     }
     return toList()
 }
