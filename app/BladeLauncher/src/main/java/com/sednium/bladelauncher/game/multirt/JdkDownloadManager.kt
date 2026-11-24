@@ -126,24 +126,33 @@ object JdkDownloadManager {
         val internalJre = com.sednium.bladelauncher.components.jre.Jre.entries.firstOrNull { it.majorVersion == item.majorVersion }
         if (internalJre != null) {
             val unpackTask = com.sednium.bladelauncher.components.jre.UnpackJreTask(context, internalJre)
-            if (!unpackTask.isCheckFailed()) {
-                Logger.info(TAG, "Runtime ${item.runtimeName} is bundled in APK assets. Unpacking directly from assets...")
-                try {
-                    _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 0.5f)
-                    unpackTask.run()
-                    if (RuntimesManager.isRuntimeComplete(item.runtimeName)) {
-                        _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
-                        withContext(Dispatchers.Main) {
-                            onSuccess()
-                        }
-                        return@withContext
-                    }
-                } catch (e: Throwable) {
-                    Logger.warning(TAG, "Unpack from assets failed, falling back to remote download: ${e.message}")
-                    RuntimesManager.removeRuntime(item.runtimeName)
-                } finally {
+            Logger.info(TAG, "Runtime ${item.runtimeName} is bundled in APK assets. Unpacking directly from assets via UnpackJreTask...")
+            try {
+                _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 0.3f)
+                onProgress(0.3f)
+                unpackTask.run()
+                _downloadingVersions.value = _downloadingVersions.value + (item.majorVersion to 1.0f)
+                onProgress(1.0f)
+                if (RuntimesManager.isRuntimeComplete(item.runtimeName)) {
                     _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "${item.title} ready!", Toast.LENGTH_SHORT).show()
+                        onSuccess()
+                    }
+                    return@withContext
+                } else {
+                    throw IOException("Runtime ${item.runtimeName} unpacked but completeness verification failed.")
                 }
+            } catch (e: Throwable) {
+                Logger.error(TAG, "Unpack from bundled assets failed for ${item.runtimeName}", e)
+                RuntimesManager.removeRuntime(item.runtimeName)
+                _downloadingVersions.value = _downloadingVersions.value - item.majorVersion
+                withContext(Dispatchers.Main) {
+                    val errMsg = "Failed to unpack ${item.title}: ${e.message}"
+                    Toast.makeText(context, errMsg, Toast.LENGTH_LONG).show()
+                    onError(IOException(errMsg, e))
+                }
+                return@withContext
             }
         }
 

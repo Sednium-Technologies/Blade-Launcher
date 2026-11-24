@@ -18,9 +18,11 @@
 
 package com.sednium.bladelauncher.game.multirt
 
+import android.content.Context
 import android.system.Os
 import com.sednium.bladelauncher.R
 import com.sednium.bladelauncher.components.jre.Jre
+import com.sednium.bladelauncher.components.jre.UnpackJreTask
 import com.sednium.bladelauncher.path.PathManager
 import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.file.child
@@ -282,7 +284,31 @@ object RuntimesManager {
         val localXawtLib = File(PathManager.DIR_NATIVE_LIB, "libawt_xawt.so")
         val targetXawtLib = dest.child(libFolder, "libawt_xawt.so")
         if (targetXawtLib.exists()) targetXawtLib.delete()
-        FileUtils.copyFile(localXawtLib, targetXawtLib)
+        if (localXawtLib.exists()) {
+            FileUtils.copyFile(localXawtLib, targetXawtLib)
+        }
+    }
+
+    /**
+     * Ensures all JRE environments bundled in APK assets for the current architecture
+     * (especially Internal-25) are unpacked and registered into RUNTIME_FOLDER.
+     */
+    suspend fun ensureBundledRuntimes(context: Context) = withContext(Dispatchers.IO) {
+        Jre.entries.forEach { jre ->
+            val task = UnpackJreTask(context, jre)
+            if (!task.isCheckFailed()) {
+                val isComplete = isRuntimeComplete(jre.jreName)
+                if (!isComplete) {
+                    Logger.info(TAG, "Bundled runtime ${jre.jreName} not complete on disk. Unpacking now...")
+                    runCatching {
+                        task.run()
+                        Logger.info(TAG, "Bundled runtime ${jre.jreName} successfully unpacked!")
+                    }.onFailure { e ->
+                        Logger.error(TAG, "Failed to unpack bundled runtime ${jre.jreName}", e)
+                    }
+                }
+            }
+        }
     }
 
     @Throws(IOException::class)

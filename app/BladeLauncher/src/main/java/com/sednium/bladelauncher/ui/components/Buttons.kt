@@ -141,7 +141,9 @@ fun IconTextButton(
     text: String,
     contentDescription: String? = text,
     style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    maxLines: Int = 1,
+    softWrap: Boolean = false
 ) {
     BaseIconTextButton(
         onClick = onClick,
@@ -156,7 +158,9 @@ fun IconTextButton(
         },
         text = text,
         style = style,
-        enabled = enabled
+        enabled = enabled,
+        maxLines = maxLines,
+        softWrap = softWrap
     )
 }
 
@@ -171,6 +175,8 @@ fun IconTextButton(
     contentDescription: String? = text,
     style: TextStyle = MaterialTheme.typography.labelMedium,
     enabled: Boolean = true,
+    maxLines: Int = 1,
+    softWrap: Boolean = false
 ) {
     BaseIconTextButton(
         onClick = onClick,
@@ -185,7 +191,9 @@ fun IconTextButton(
         },
         text = text,
         style = style,
-        enabled = enabled
+        enabled = enabled,
+        maxLines = maxLines,
+        softWrap = softWrap
     )
 }
 
@@ -197,7 +205,9 @@ fun BaseIconTextButton(
     icon: @Composable (Modifier) -> Unit,
     text: String,
     style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    maxLines: Int = 1,
+    softWrap: Boolean = false
 ) {
     Row(
         modifier = modifier
@@ -213,7 +223,9 @@ fun BaseIconTextButton(
                 .align(Alignment.CenterVertically)
                 .padding(end = 4.dp),
             text = text,
-            style = style
+            style = style,
+            maxLines = maxLines,
+            softWrap = softWrap
         )
     }
 }

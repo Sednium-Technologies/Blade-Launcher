@@ -25,20 +25,23 @@ import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -103,6 +106,7 @@ import com.sednium.bladelauncher.utils.string.getMessageOrToString
 import com.sednium.bladelauncher.utils.string.throwableToString
 import com.sednium.bladelauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
 private sealed interface RuntimeOperation {
@@ -132,6 +136,13 @@ fun JavaManageScreen(
         var runtimes by remember { mutableStateOf(getRuntimes()) }
         var runtimeOperation by remember { mutableStateOf<RuntimeOperation>(RuntimeOperation.None) }
         var showJdkDownloadDialog by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                RuntimesManager.ensureBundledRuntimes(context)
+            }
+            runtimes = getRuntimes(true)
+        }
 
         if (showJdkDownloadDialog) {
             JdkDownloadDialog(
@@ -494,12 +505,15 @@ private fun JdkDownloadDialog(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(
+                                    modifier = Modifier.weight(1f, fill = false),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Text(
                                         text = jdkItem.title,
-                                        style = MaterialTheme.typography.titleSmall
+                                        style = MaterialTheme.typography.titleSmall,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                     Surface(
                                         shape = MaterialTheme.shapes.small,
@@ -509,10 +523,14 @@ private fun JdkDownloadDialog(
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                             text = if (jdkItem.isLts) "LTS" else "Latest",
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = if (jdkItem.isLts) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer
+                                            color = if (jdkItem.isLts) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer,
+                                            maxLines = 1,
+                                            softWrap = false
                                         )
                                     }
                                 }
+
+                                Spacer(Modifier.width(8.dp))
 
                                 if (isInstalled) {
                                     Surface(
@@ -533,7 +551,9 @@ private fun JdkDownloadDialog(
                                             Text(
                                                 text = stringResource(R.string.multirt_jdk_installed),
                                                 style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
                                         }
                                     }
@@ -541,10 +561,15 @@ private fun JdkDownloadDialog(
                                     Text(
                                         text = "${((progress ?: 0f) * 100).toInt()}%",
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 } else {
                                     IconTextButton(
+                                        modifier = Modifier
+                                            .defaultMinSize(minWidth = 96.dp)
+                                            .wrapContentWidth(),
                                         onClick = {
                                             coroutineScope.launch {
                                                 JdkDownloadManager.downloadAndInstallJdk(
@@ -570,8 +595,11 @@ private fun JdkDownloadDialog(
                                             }
                                         },
                                         painter = painterResource(R.drawable.ic_download),
+                                        iconSize = 18.dp,
                                         contentDescription = stringResource(R.string.multirt_jdk_download),
-                                        text = stringResource(R.string.multirt_jdk_download)
+                                        text = stringResource(R.string.multirt_jdk_download),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }

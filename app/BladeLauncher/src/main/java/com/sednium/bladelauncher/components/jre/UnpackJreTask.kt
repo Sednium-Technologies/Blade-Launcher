@@ -46,7 +46,9 @@ class UnpackJreTask(
                 isCheckFailed = true
                 return@runCatching
             }
-            launcherRuntimeVersion = assetManager.open(jre.jrePath + "/version").readString()
+            launcherRuntimeVersion = runCatching {
+                assetManager.open(jre.jrePath + "/version").use { it.readString() }
+            }.getOrDefault("1")
         }.onFailure { e ->
             Logger.warning(TAG, "Failed to init jre version. assetsPath=${jre.jrePath}/version", e)
             isCheckFailed = true
@@ -85,14 +87,16 @@ class UnpackJreTask(
 
     private fun isJreArchSupported(): Boolean {
         return runCatching {
-            val allPacks = assetManager.list(jre.jrePath) ?: return@runCatching false
-            //检查是否包含符合当前设备架构的环境
-            val runtime = getRuntimeByArch()
-            allPacks.contains(runtime).also {
-                Logger.info(TAG, "Device requires environment: ${jre.jrePath}/$runtime, contains = $it")
-            }
+            val archPack = "${jre.jrePath}/${getRuntimeByArch()}"
+            val universalPack = "${jre.jrePath}/universal.tar.xz"
+            // Directly test opening asset streams instead of relying on AssetManager.list(),
+            // which can return empty on Android for APK directories without explicit zip folder entries.
+            assetManager.open(archPack).close()
+            assetManager.open(universalPack).close()
+            Logger.info(TAG, "Device environment supported for ${jre.jrePath}: $archPack and $universalPack are available")
+            true
         }.getOrElse { e ->
-            Logger.warning(TAG, "Failed to list assets directory", e)
+            Logger.warning(TAG, "Device requires environment ${jre.jrePath}/${getRuntimeByArch()} but assets not found in APK", e)
             false
         }
     }

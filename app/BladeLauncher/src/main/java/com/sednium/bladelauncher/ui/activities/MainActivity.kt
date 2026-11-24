@@ -45,6 +45,7 @@ import com.sednium.bladelauncher.context.COPY_LABEL_LINK
 import com.sednium.bladelauncher.coroutine.Task
 import com.sednium.bladelauncher.coroutine.TaskSystem
 import com.sednium.bladelauncher.game.control.ControlManager
+import com.sednium.bladelauncher.game.multirt.RuntimesManager
 import com.sednium.bladelauncher.game.plugin.driver.DriverPluginManager
 import com.sednium.bladelauncher.game.version.installed.VersionsManager
 import com.sednium.bladelauncher.notification.BladeNotificationManager
@@ -191,6 +192,11 @@ class MainActivity : BaseAppCompatActivity() {
 
         //初始化通知管理（创建渠道）
         NotificationManager.initManager(this)
+
+        // Ensure bundled runtimes (Internal-8/17/21/25) are extracted and available on disk
+        lifecycleScope.launch(Dispatchers.IO) {
+            RuntimesManager.ensureBundledRuntimes(this@MainActivity)
+        }
 
         handleOtaIntentIfNeeded(intent)
 
