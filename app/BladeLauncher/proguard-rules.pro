@@ -56,6 +56,37 @@
 # Libraries
 -keep class com.github.steveice10.opennbt.** { *; }
 
+# Gson serialization
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.google.gson.** { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+
+# Keep classes and members annotated with @Keep
+-keep @androidx.annotation.Keep class * { *; }
+-keepclassmembers class * {
+    @androidx.annotation.Keep *;
+}
+
+# MultiRT / Runtime models and managers
+-keep class com.sednium.bladelauncher.game.multirt.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.game.multirt.** { *; }
+-keep class com.sednium.bladelauncher.components.jre.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.components.jre.** { *; }
+
+# Version, manifest, and download JSON models
+-keep class com.sednium.bladelauncher.game.versioninfo.models.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.game.versioninfo.models.** { *; }
+-keep class com.sednium.bladelauncher.game.version.installed.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.game.version.installed.** { *; }
+-keep class com.sednium.bladelauncher.game.download.** { *; }
+-keepclassmembers class com.sednium.bladelauncher.game.download.** { *; }
+
 # Parcelable preservation
 -keepclassmembers class * implements android.os.Parcelable {
     public static final android.os.Parcelable$Creator CREATOR;

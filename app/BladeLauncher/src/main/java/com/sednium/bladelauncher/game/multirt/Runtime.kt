@@ -17,26 +17,38 @@
  */
 package com.sednium.bladelauncher.game.multirt
 
+import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
 import com.sednium.bladelauncher.ZLApplication.Companion.DEVICE_ARCHITECTURE
+import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.device.Architecture.archAsInt
 
+@Keep
 data class Runtime(
+    @SerializedName("name")
     val name: String,
+    @SerializedName("versionString")
     val versionString: String?,
+    @SerializedName("arch")
     val arch: String?,
+    @SerializedName("javaVersion")
     val javaVersion: Int,
+    @SerializedName("isProvidedByLauncher")
     val isProvidedByLauncher: Boolean,
+    @SerializedName("isJDK8")
     val isJDK8: Boolean
 ) {
     constructor(name: String) : this(
         name = name,
         versionString = null,
-        arch = null,
+        arch = Architecture.resolveFallbackJavaArch(),
         javaVersion = 0,
         isProvidedByLauncher = false,
         isJDK8 = false
     )
 
-    fun isCompatible(): Boolean =
-        versionString != null && DEVICE_ARCHITECTURE == archAsInt(arch)
+    fun isCompatible(): Boolean {
+        val targetArch = arch ?: Architecture.resolveFallbackJavaArch()
+        return versionString != null && DEVICE_ARCHITECTURE == archAsInt(targetArch)
+    }
 }

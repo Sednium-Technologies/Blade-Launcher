@@ -58,11 +58,43 @@ object Architecture {
     fun archAsInt(arch: String?): Int {
         val normalizedArch = arch?.lowercase()?.trim()?.replace(" ", "") ?: return UNSUPPORTED_ARCH
         return when {
-            normalizedArch.contains("arm64") || normalizedArch == "aarch64" -> ARCH_ARM64
-            normalizedArch.contains("arm") || normalizedArch == "aarch32" -> ARCH_ARM
+            normalizedArch.contains("arm64") || normalizedArch.contains("aarch64") -> ARCH_ARM64
+            normalizedArch.contains("arm") || normalizedArch.contains("aarch32") -> ARCH_ARM
             normalizedArch.contains("x86_64") || normalizedArch.contains("amd64") -> ARCH_X86_64
             normalizedArch.contains("x86") || (normalizedArch.startsWith("i") && normalizedArch.endsWith("86")) -> ARCH_X86
             else -> UNSUPPORTED_ARCH
+        }
+    }
+
+    /**
+     * Resolves the Java runtime architecture string with fallback to Build.SUPPORTED_ABIS.
+     * Maps Android ABIs (arm64-v8a -> aarch64, armeabi-v7a -> aarch32/arm, x86_64 -> amd64/x86_64, x86 -> i386/i486/i586).
+     */
+    fun resolveFallbackJavaArch(abiList: Array<String>? = runCatching { Build.SUPPORTED_ABIS }.getOrNull()): String {
+        abiList?.forEach { abi ->
+            val normalized = abi.lowercase().trim()
+            when {
+                normalized.startsWith("arm64") || normalized.contains("aarch64") -> return "aarch64"
+                normalized.startsWith("armeabi") || normalized.contains("arm") || normalized.contains("aarch32") -> return "aarch32/arm"
+                normalized.contains("x86_64") || normalized.contains("amd64") -> return "amd64/x86_64"
+                normalized.contains("x86") || (normalized.startsWith("i") && normalized.endsWith("86")) -> return "i386/i486/i586"
+            }
+        }
+        val systemArch = System.getProperty("os.arch").orEmpty().lowercase()
+        return when {
+            systemArch.contains("aarch64") || systemArch.contains("arm64") -> "aarch64"
+            systemArch.contains("arm") -> "aarch32/arm"
+            systemArch.contains("x86_64") || systemArch.contains("amd64") -> "amd64/x86_64"
+            systemArch.contains("x86") || (systemArch.startsWith("i") && systemArch.endsWith("86")) -> "i386/i486/i586"
+            else -> runCatching {
+                when (getDeviceArchitecture()) {
+                    ARCH_ARM64 -> "aarch64"
+                    ARCH_ARM -> "aarch32/arm"
+                    ARCH_X86_64 -> "amd64/x86_64"
+                    ARCH_X86 -> "i386/i486/i586"
+                    else -> archAsString(getDeviceArchitecture())
+                }
+            }.getOrDefault("aarch64")
         }
     }
 

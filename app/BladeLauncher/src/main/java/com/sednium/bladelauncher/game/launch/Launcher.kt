@@ -315,10 +315,14 @@ abstract class Launcher(
     }
 
     protected fun getJavaLibDir(): String {
-        val architecture = runtime.arch?.let { arch ->
-            if (Architecture.archAsInt(arch) == ARCH_X86) "i386/i486/i586"
-            else arch
-        } ?: throw IOException("Unsupported runtime environment: ${runtime.name}, arch is null!")
+        val rawArch = runtime.arch?.takeIf { it.isNotBlank() } ?: run {
+            val fallback = Architecture.resolveFallbackJavaArch()
+            Logger.warning(TAG, "Runtime arch for ${runtime.name} is null or blank, falling back to $fallback from Build.SUPPORTED_ABIS (${Build.SUPPORTED_ABIS.joinToString()})")
+            fallback
+        }
+
+        val architecture = if (Architecture.archAsInt(rawArch) == ARCH_X86) "i386/i486/i586"
+        else rawArch
 
         var libDir = "/lib"
         architecture.split("/").forEach { arch ->

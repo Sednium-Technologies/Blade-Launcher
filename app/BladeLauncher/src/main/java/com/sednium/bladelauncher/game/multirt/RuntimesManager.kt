@@ -22,6 +22,7 @@ import android.system.Os
 import com.sednium.bladelauncher.R
 import com.sednium.bladelauncher.components.jre.Jre
 import com.sednium.bladelauncher.path.PathManager
+import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.file.child
 import com.sednium.bladelauncher.utils.file.ensureDirectory
 import com.sednium.bladelauncher.utils.file.ensureParentDirectory
@@ -87,15 +88,26 @@ object RuntimesManager {
         return cache[name]?.takeIf { !forceLoad } ?: run {
             val runtimeDir = File(RUNTIME_FOLDER, name)
             val releaseFile = File(runtimeDir, "release")
+            val fallbackArch = Architecture.resolveFallbackJavaArch()
 
-            if (!releaseFile.exists()) return Runtime(name).also { cache[name] = it }
+            if (!releaseFile.exists()) {
+                val isJdk8 = isJDK8(runtimeDir.absolutePath)
+                return Runtime(
+                    name = name,
+                    versionString = if (name.contains("8")) "1.8.0" else null,
+                    arch = fallbackArch,
+                    javaVersion = if (name.contains("8")) 8 else 0,
+                    isProvidedByLauncher = Jre.entries.any { it.jreName == name },
+                    isJDK8 = isJdk8
+                ).also { cache[name] = it }
+            }
 
             runCatching {
                 val content = releaseFile.readText()
                 val javaVersion = content.extractUntilCharacter(JAVA_VERSION_STR, '"')
-                val osArch = content.extractUntilCharacter(OS_ARCH_STR, '"')
+                val osArch = content.extractUntilCharacter(OS_ARCH_STR, '"') ?: fallbackArch
 
-                if (javaVersion != null && osArch != null) {
+                if (javaVersion != null) {
                     val versionParts = javaVersion.split('.')
                     val majorVersion = if (versionParts.first() == "1") {
                         versionParts.getOrNull(1)?.toIntOrNull() ?: 0
@@ -112,12 +124,26 @@ object RuntimesManager {
                         isJDK8 = isJDK8(runtimeDir.absolutePath)
                     )
                 } else {
-                    Runtime(name)
+                    Runtime(
+                        name = name,
+                        versionString = null,
+                        arch = fallbackArch,
+                        javaVersion = 0,
+                        isProvidedByLauncher = Jre.entries.any { it.jreName == name },
+                        isJDK8 = isJDK8(runtimeDir.absolutePath)
+                    )
                 }
             }.onFailure { e ->
                 Logger.error(TAG, "Failed to load runtime $name", e)
             }.getOrElse {
-                Runtime(name)
+                Runtime(
+                    name = name,
+                    versionString = null,
+                    arch = fallbackArch,
+                    javaVersion = 0,
+                    isProvidedByLauncher = Jre.entries.any { it.jreName == name },
+                    isJDK8 = isJDK8(runtimeDir.absolutePath)
+                )
             }.also { cache[name] = it }
         }
     }
@@ -157,9 +183,11 @@ object RuntimesManager {
         if (!dest.exists()) return@withContext
         var libFolder = "lib"
 
-        val arch = runtime.arch
-        if (arch != null && dest.child(libFolder, arch).exists()) {
-            libFolder += "/$arch"
+        val arch = runtime.arch ?: Architecture.resolveFallbackJavaArch()
+        arch.split("/").forEach { subArch ->
+            if (dest.child(libFolder, subArch).exists()) {
+                libFolder += "/$subArch"
+            }
         }
 
         val isJDK8 = isJDK8(dest.absolutePath)
