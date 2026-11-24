@@ -166,6 +166,9 @@
     <string name="ota_install">Install Update</string>
     <string name="ota_cancel">Cancel</string>
     <string name="ota_permission_request">Installation permission is required to update Blade Launcher directly. Please allow installing unknown apps.</string>
+    <string name="ota_detected_arch">Detected: %s</string>
+    <string name="ota_select_arch">Architecture</string>
+    <string name="ota_recommended">Auto</string>
     <string name="generic_retry">Retry</string>
     <!--  Microphone  -->
     <string name="microphone_check_title">Check Microphone Input</string>

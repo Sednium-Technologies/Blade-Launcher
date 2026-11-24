@@ -66,4 +66,16 @@ class ArchitectureFallbackTest {
         assertNotNull("Runtime arch must never be null", runtime.arch)
         assertNotEquals(Architecture.UNSUPPORTED_ARCH, Architecture.archAsInt(runtime.arch))
     }
+
+    @Test
+    fun testGetRecommendedArchDoesNotThrow() {
+        val arch = Architecture.getRecommendedArch()
+        assertNotEquals(Architecture.UNSUPPORTED_ARCH, arch)
+    }
+
+    @Test
+    fun testGetDevicePrimaryAbiNotNull() {
+        val abi = Architecture.getDevicePrimaryAbi()
+        assertNotNull(abi)
+    }
 }

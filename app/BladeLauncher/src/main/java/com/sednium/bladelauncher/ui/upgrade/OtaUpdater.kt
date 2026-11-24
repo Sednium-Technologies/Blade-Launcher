@@ -59,11 +59,32 @@ object OtaUpdater {
         return File(otaDir, "BladeLauncher-update.apk")
     }
 
-    fun resolveTargetApk(data: RemoteData): RemoteData.RemoteFile? {
-        val deviceArch = runCatching { Architecture.getDeviceArchitecture() }.getOrElse {
-            Architecture.ARCH_ARM64
+    fun getArchLabel(arch: RemoteData.RemoteFile.Arch): String = when (arch) {
+        RemoteData.RemoteFile.Arch.ARM64 -> "arm64-v8a"
+        RemoteData.RemoteFile.Arch.ARM -> "armeabi-v7a"
+        RemoteData.RemoteFile.Arch.X86_64 -> "x86_64"
+        RemoteData.RemoteFile.Arch.X86 -> "x86"
+        RemoteData.RemoteFile.Arch.ALL -> "Universal"
+    }
+
+    fun isArchRecommended(arch: RemoteData.RemoteFile.Arch): Boolean {
+        val rec = runCatching { Architecture.getRecommendedArch() }.getOrElse {
+            Architecture.getDeviceArchitecture()
         }
-        val targetArch = when (deviceArch) {
+        return when (arch) {
+            RemoteData.RemoteFile.Arch.ARM64 -> rec == Architecture.ARCH_ARM64
+            RemoteData.RemoteFile.Arch.ARM -> rec == Architecture.ARCH_ARM
+            RemoteData.RemoteFile.Arch.X86_64 -> rec == Architecture.ARCH_X86_64
+            RemoteData.RemoteFile.Arch.X86 -> rec == Architecture.ARCH_X86
+            RemoteData.RemoteFile.Arch.ALL -> false
+        }
+    }
+
+    fun resolveTargetApk(data: RemoteData): RemoteData.RemoteFile? {
+        val recommendedArch = runCatching { Architecture.getRecommendedArch() }.getOrElse {
+            Architecture.getDeviceArchitecture()
+        }
+        val targetArch = when (recommendedArch) {
             Architecture.ARCH_ARM64 -> RemoteData.RemoteFile.Arch.ARM64
             Architecture.ARCH_ARM -> RemoteData.RemoteFile.Arch.ARM
             Architecture.ARCH_X86_64 -> RemoteData.RemoteFile.Arch.X86_64

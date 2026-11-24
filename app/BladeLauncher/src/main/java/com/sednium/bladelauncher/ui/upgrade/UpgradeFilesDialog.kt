@@ -54,7 +54,9 @@ fun UpgradeFilesDialog(
 ) {
     //当前设备的架构信息
     val currentArch: RemoteData.RemoteFile.Arch = remember(data) {
-        val arch = Architecture.getDeviceArchitecture()
+        val arch = runCatching { Architecture.getRecommendedArch() }.getOrElse {
+            Architecture.getDeviceArchitecture()
+        }
         when (arch) {
             Architecture.ARCH_ARM -> RemoteData.RemoteFile.Arch.ARM
             Architecture.ARCH_ARM64 -> RemoteData.RemoteFile.Arch.ARM64
@@ -88,8 +90,7 @@ fun UpgradeFilesDialog(
                 currentArch = currentArch,
                 selected = isCurrent,
                 onClick = onClick,
-                //根据设备架构决定哪些安装包不能选择，避免下载到错误架构的安装包（允许选择全架构）
-                enabled = item.arch == RemoteData.RemoteFile.Arch.ALL || item.arch == currentArch
+                enabled = true
             )
         },
         showConfirm = true,

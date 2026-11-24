@@ -18,6 +18,7 @@
 
 package com.sednium.bladelauncher.ui.upgrade
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +26,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,17 +43,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.sednium.bladelauncher.R
+import com.sednium.bladelauncher.ui.components.CheckChip
 import com.sednium.bladelauncher.ui.theme.cardColor
 import com.sednium.bladelauncher.ui.theme.onCardColor
 import com.sednium.bladelauncher.upgrade.RemoteData
+import com.sednium.bladelauncher.utils.device.Architecture
 import com.sednium.bladelauncher.utils.file.formatFileSize
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -66,28 +69,29 @@ fun OtaUpdateDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val file = remember(data, targetFile) {
-        targetFile ?: OtaUpdater.resolveTargetApk(data)
+    var selectedFile by remember(data, targetFile) {
+        mutableStateOf(targetFile ?: OtaUpdater.resolveTargetApk(data))
     }
 
     var downloadState by remember { mutableStateOf<OtaDownloadState>(OtaDownloadState.Idle) }
     var downloadJob by remember { mutableStateOf<Job?>(null) }
 
-    fun startDownload() {
-        if (file == null) {
+    fun startDownload(fileToDownload: RemoteData.RemoteFile?) {
+        if (fileToDownload == null) {
             downloadState = OtaDownloadState.Error("No compatible APK release found for this device architecture.")
             return
         }
         downloadJob?.cancel()
+        downloadState = OtaDownloadState.Idle
         downloadJob = scope.launch {
-            OtaUpdater.downloadApk(context, file) { state ->
+            OtaUpdater.downloadApk(context, fileToDownload) { state ->
                 downloadState = state
             }
         }
     }
 
-    LaunchedEffect(file) {
-        startDownload()
+    LaunchedEffect(selectedFile) {
+        startDownload(selectedFile)
     }
 
     Dialog(
@@ -110,7 +114,7 @@ fun OtaUpdateDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header Row
+                // Header Row with Detected Architecture Showcase
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -127,9 +131,84 @@ fun OtaUpdateDialog(
                             text = "Blade Launcher v${data.version}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         )
-                        file?.fileName?.let { name ->
+                        val primaryAbi = remember {
+                            Architecture.getDevicePrimaryAbi().ifBlank {
+                                Architecture.archAsStringAndroid(Architecture.getRecommendedArch())
+                            }
+                        }
+                        Text(
+                            text = stringResource(R.string.ota_detected_arch, primaryAbi),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                // Architecture Showcase & Selector (Switch between arm64-v8a, armeabi-v7a, x86_64)
+                if (data.files.size > 1) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.ota_select_arch),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            data.files.forEach { remoteFile ->
+                                val isSelected = remoteFile == selectedFile
+                                val isRecommended = OtaUpdater.isArchRecommended(remoteFile.arch)
+                                CheckChip(
+                                    selected = isSelected,
+                                    label = {
+                                        val label = buildString {
+                                            append(OtaUpdater.getArchLabel(remoteFile.arch))
+                                            if (isRecommended) {
+                                                append(" (${stringResource(R.string.ota_recommended)})")
+                                            }
+                                        }
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
+                                    },
+                                    onClick = {
+                                        if (selectedFile != remoteFile) {
+                                            selectedFile = remoteFile
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Target File Details
+                selectedFile?.let { currentFile ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = currentFile.fileName,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (currentFile.size > 0L) {
                             Text(
-                                text = name,
+                                text = formatFileSize(currentFile.size),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -243,7 +322,7 @@ fun OtaUpdateDialog(
                             }
                             Spacer(Modifier.size(8.dp))
                             Button(
-                                onClick = { startDownload() }
+                                onClick = { startDownload(selectedFile) }
                             ) {
                                 Text(text = stringResource(R.string.generic_retry))
                             }

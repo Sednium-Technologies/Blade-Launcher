@@ -80,4 +80,22 @@ class OtaUpdaterTest {
         )
         assertEquals(-1f, state2.progress, 0.001f)
     }
+
+    @Test
+    fun testGetArchLabel() {
+        assertEquals("arm64-v8a", OtaUpdater.getArchLabel(RemoteData.RemoteFile.Arch.ARM64))
+        assertEquals("armeabi-v7a", OtaUpdater.getArchLabel(RemoteData.RemoteFile.Arch.ARM))
+        assertEquals("x86_64", OtaUpdater.getArchLabel(RemoteData.RemoteFile.Arch.X86_64))
+        assertEquals("x86", OtaUpdater.getArchLabel(RemoteData.RemoteFile.Arch.X86))
+        assertEquals("Universal", OtaUpdater.getArchLabel(RemoteData.RemoteFile.Arch.ALL))
+    }
+
+    @Test
+    fun testIsArchRecommendedDoesNotThrow() {
+        // Must evaluate safely without crashing on any architecture
+        val isArm64Rec = OtaUpdater.isArchRecommended(RemoteData.RemoteFile.Arch.ARM64)
+        val isArmRec = OtaUpdater.isArchRecommended(RemoteData.RemoteFile.Arch.ARM)
+        val isX8664Rec = OtaUpdater.isArchRecommended(RemoteData.RemoteFile.Arch.X86_64)
+        assertTrue(isArm64Rec || isArmRec || isX8664Rec)
+    }
 }

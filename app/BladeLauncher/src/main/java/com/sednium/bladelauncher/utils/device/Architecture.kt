@@ -43,6 +43,73 @@ object Architecture {
     val is32BitsDevice: Boolean
         get() = !is64BitsDevice
 
+    /**
+     * Resolves the architecture this specific APK binary was compiled for (BuildKeys.BUILD_ARCH).
+     * If compiled for "arm", returns ARCH_ARM (32-bit).
+     */
+    fun getRunningAppArch(): Int {
+        val buildArch = runCatching { com.sednium.bladelauncher.BuildKeys.BUILD_ARCH }.getOrNull()?.lowercase()?.trim()
+        return when (buildArch) {
+            "arm" -> ARCH_ARM
+            "arm64" -> ARCH_ARM64
+            "x86_64" -> ARCH_X86_64
+            "x86" -> ARCH_X86
+            else -> UNSUPPORTED_ARCH
+        }
+    }
+
+    /**
+     * The primary ABI reported by the Android OS environment.
+     */
+    fun getDevicePrimaryAbi(): String {
+        return runCatching {
+            Build.SUPPORTED_ABIS?.firstOrNull { it.isNotBlank() }
+        }.getOrNull() ?: System.getProperty("os.arch").orEmpty()
+    }
+
+    /**
+     * Accurately determines the recommended architecture for OTA/APK updates.
+     * Takes into account the current APK build architecture, 32-bit userspace environments,
+     * primary Android ABI, and processor architecture.
+     */
+    fun getRecommendedArch(): Int {
+        // 1. If running an architecture-specific APK build, always prefer updating to the same architecture
+        val runningArch = getRunningAppArch()
+        if (runningArch != UNSUPPORTED_ARCH) {
+            return runningArch
+        }
+
+        // 2. Inspect the primary ABI reported by the Android OS
+        val primaryAbi = getDevicePrimaryAbi().lowercase()
+        if (primaryAbi.startsWith("armeabi") || primaryAbi == "arm") {
+            return ARCH_ARM
+        }
+        if (primaryAbi.startsWith("arm64") || primaryAbi.contains("aarch64")) {
+            // Check if process is 32-bit on a device with no 64-bit ABI support (e.g. 32-bit Android OS on 64-bit SoC)
+            val isProcess64Bit = runCatching {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    android.os.Process.is64Bit()
+                } else {
+                    false
+                }
+            }.getOrNull()
+            val supported64 = runCatching { Build.SUPPORTED_64_BIT_ABIS }.getOrNull()
+            if (isProcess64Bit == false && (supported64 == null || supported64.isEmpty())) {
+                return ARCH_ARM
+            }
+            return ARCH_ARM64
+        }
+        if (primaryAbi.contains("x86_64") || primaryAbi.contains("amd64")) {
+            return ARCH_X86_64
+        }
+        if (primaryAbi.contains("x86") || (primaryAbi.startsWith("i") && primaryAbi.endsWith("86"))) {
+            return ARCH_X86
+        }
+
+        // 3. Fallback to general device architecture
+        return getDeviceArchitecture()
+    }
+
     fun getDeviceArchitecture(): Int {
         return if (isx86Device()) {
             if (is64BitsDevice) ARCH_X86_64 else ARCH_X86
